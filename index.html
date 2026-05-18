@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TacoSoft — El Sinaloense</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rojo:    #C0392B;
+    --naranja: #E67E22;
+    --amarillo:#F1C40F;
+    --verde:   #27AE60;
+    --carbon:  #1A1A1A;
+    --oscuro:  #111111;
+    --hueso:   #F5EFE0;
+    --crema:   #FAF6EE;
+    --gris:    #2C2C2C;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--oscuro);
+    font-family: 'Syne', sans-serif;
+    color: var(--hueso);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,.015) 40px, rgba(255,255,255,.015) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,.015) 40px, rgba(255,255,255,.015) 41px);
+    pointer-events:none; z-index:0;
+  }
+
+  
+  .blob {
+    position:fixed;
+    border-radius:50%;
+    filter:blur(120px);
+    opacity:.18;
+    pointer-events:none;
+    z-index:0;
+  }
+  .blob-1 { width:600px; height:600px; background:var(--rojo);    top:-200px; right:-150px; }
+  .blob-2 { width:400px; height:400px; background:var(--naranja); bottom:-100px; left:-100px; }
+
+  
+  nav {
+    position: relative; z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 1.5rem 3rem;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+
+  .logo {
+    display:flex; align-items:center; gap:.75rem;
+  }
+  .logo-icon {
+    width:44px; height:44px;
+    background: var(--rojo);
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+  }
+  .logo-text {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2rem;
+    letter-spacing:.08em;
+    color:var(--hueso);
+    line-height:1;
+  }
+  .logo-sub {
+    font-family:'DM Mono', monospace;
+    font-size:.65rem;
+    color: rgba(245,239,224,.4);
+    letter-spacing:.15em;
+    text-transform:uppercase;
+  }
+
+  .nav-badge {
+    font-family:'DM Mono', monospace;
+    font-size:.7rem;
+    letter-spacing:.1em;
+    color: rgba(245,239,224,.4);
+    border: 1px solid rgba(255,255,255,.1);
+    padding:.3rem .8rem;
+    border-radius:4px;
+  }
+
+  .hero {
+    position:relative; z-index:1;
+    padding: 6rem 3rem 4rem;
+    max-width:1200px; margin:0 auto;
+  }
+
+  .hero-eyebrow {
+    font-family:'DM Mono', monospace;
+    font-size:.75rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color: var(--naranja);
+    margin-bottom:1.5rem;
+    display:flex; align-items:center; gap:.75rem;
+  }
+  .hero-eyebrow::before {
+    content:'';
+    width:40px; height:1px;
+    background:var(--naranja);
+  }
+
+  .hero-title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height:.92;
+    letter-spacing:.02em;
+    margin-bottom:2rem;
+  }
+  .hero-title span { color:var(--rojo); }
+
+  .hero-desc {
+    font-size:1.05rem;
+    color: rgba(245,239,224,.6);
+    max-width:480px;
+    line-height:1.7;
+    margin-bottom:3.5rem;
+  }
+
+  .modules-grid {
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap:1.5rem;
+    padding: 0 3rem 5rem;
+    max-width:1200px; margin:0 auto;
+  }
+
+  .module-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius:20px;
+    padding:2rem;
+    cursor:pointer;
+    text-decoration:none;
+    color:inherit;
+    display:block;
+    transition: all .3s ease;
+    position:relative;
+    overflow:hidden;
+    animation: fadeUp .5s ease both;
+  }
+  .module-card:nth-child(1){ animation-delay:.1s; }
+  .module-card:nth-child(2){ animation-delay:.2s; }
+  .module-card:nth-child(3){ animation-delay:.3s; }
+  .module-card:nth-child(4){ animation-delay:.4s; }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .module-card::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: var(--card-color);
+    opacity:0;
+    transition: opacity .3s;
+    border-radius:20px;
+  }
+  .module-card:hover { transform:translateY(-6px); border-color:rgba(255,255,255,.2); }
+  .module-card:hover::before { opacity:.06; }
+
+  .card-number {
+    font-family:'DM Mono', monospace;
+    font-size:.7rem;
+    letter-spacing:.15em;
+    color: rgba(245,239,224,.3);
+    margin-bottom:1.5rem;
+  }
+
+  .card-icon {
+    font-size:2.5rem;
+    margin-bottom:1.25rem;
+    display:block;
+  }
+
+  .card-title {
+    font-family:'Bebas Neue', sans-serif;
+    font-size:2rem;
+    letter-spacing:.04em;
+    margin-bottom:.5rem;
+    color: var(--card-color);
+  }
+
+  .card-desc {
+    font-size:.88rem;
+    color:rgba(245,239,224,.5);
+    line-height:1.6;
+    margin-bottom:1.75rem;
+  }
+
+  .card-features {
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:.4rem;
+    margin-bottom:2rem;
+  }
+  .card-features li {
+    font-family:'DM Mono', monospace;
+    font-size:.72rem;
+    color:rgba(245,239,224,.4);
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .card-features li::before {
+    content:'→';
+    color: var(--card-color);
+    opacity:.7;
+  }
+
+  .card-cta {
+    display:inline-flex; align-items:center; gap:.5rem;
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    color: var(--card-color);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    transition: gap .2s;
+  }
+  .module-card:hover .card-cta { gap:.9rem; }
+
+  .modulo-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--oscuro);
+    display: none; flex-direction: column;
+  }
+  .modulo-overlay.visible { display: flex; }
+  .overlay-bar {
+    background: var(--carbon);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    padding: .6rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    flex-shrink: 0;
+  }
+  .overlay-close {
+    background: rgba(192,57,43,.15); border: 1px solid rgba(192,57,43,.3);
+    color: #C0392B; font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: .8rem; padding: .35rem .9rem; border-radius: 8px;
+    cursor: pointer; transition: all .2s;
+  }
+  .overlay-close:hover { background: rgba(192,57,43,.3); }
+  .overlay-label {
+    font-family: 'DM Mono', monospace; font-size: .72rem;
+    letter-spacing: .12em; color: rgba(245,239,224,.35);
+  }
+  .modulo-overlay iframe {
+    flex: 1; border: none; width: 100%; height: 100%;
+  }
+  .modulo-overlay::before {
+    content:'';
+    position:relative; z-index:1;
+    height:1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+    margin: 0 3rem 4rem;
+  }
+
+  
+  .stack-bar {
+    position:relative; z-index:1;
+    display:flex; align-items:center; gap:2rem; flex-wrap:wrap;
+    padding: 0 3rem 5rem;
+    max-width:1200px; margin:0 auto;
+  }
+  .stack-label {
+    font-family:'DM Mono', monospace;
+    font-size:.7rem;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+    color:rgba(245,239,224,.25);
+  }
+  .stack-tag {
+    font-family:'DM Mono', monospace;
+    font-size:.72rem;
+    padding:.3rem .75rem;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:4px;
+    color:rgba(245,239,224,.5);
+    letter-spacing:.05em;
+  }
+  .stack-tag.active { border-color:var(--naranja); color:var(--naranja); }
+</style>
+</head>
+<body>
+
+
+
+<iframe id="modulo-frame" src="" title="Módulo TacoSoft"></iframe>
+</div>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🌮</div>
+    <div>
+      <div class="logo-text">TacoSoft</div>
+      <div class="logo-sub">Sistema POS · El Sinaloense</div>
+    </div>
+  </div>
+  <div class="nav-badge">SINALOA · 2026</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Sistema de Punto de Venta</div>
+  <h1 class="hero-title">
+    El<br>
+    <span>Sinaloense</span><br>
+    POS
+  </h1>
+  <p class="hero-desc">
+    Plataforma integral para gestionar ventas, pedidos, catálogos y reportes de las 4 sucursales en Sinaloa. Selecciona un módulo para comenzar.
+  </p>
+</section>
+
+<div class="modules-grid">
+
+  <div onclick="window.open('pos.html','_blank')" class="module-card" style="--card-color: #E67E22; cursor:pointer;">
+    <div class="card-number">MÓDULO 01</div>
+    <span class="card-icon">🧾</span>
+    <div class="card-title">Punto de Venta</div>
+    <p class="card-desc">Pantalla principal para que el cajero tome pedidos en tiempo real.</p>
+    <ul class="card-features">
+      <li>Selección de sucursal y cajero</li>
+      <li>Navegación por categorías</li>
+      <li>Aplicar promociones vigentes</li>
+      <li>Confirmar y registrar pedido</li>
+    </ul>
+    <div class="card-cta">Ir al POS →</div>
+  </div>
+
+  <div onclick="window.open('pedidos.html','_blank')" class="module-card" style="--card-color: #3498DB; cursor:pointer;">
+    <div class="card-number">MÓDULO 02</div>
+    <span class="card-icon">📋</span>
+    <div class="card-title">Gestión de Pedidos</div>
+    <p class="card-desc">Administra el flujo de pedidos desde pendiente hasta entregado.</p>
+    <ul class="card-features">
+      <li>Filtrar por estatus</li>
+      <li>Avanzar flujo de pedidos</li>
+      <li>Cancelar pedidos</li>
+      <li>Ver detalle completo</li>
+    </ul>
+    <div class="card-cta">Ver pedidos →</div>
+  </div>
+
+  <div onclick="window.open('catalogos.html','_blank')" class="module-card" style="--card-color: #27AE60; cursor:pointer;">
+    <div class="card-number">MÓDULO 03</div>
+    <span class="card-icon">📦</span>
+    <div class="card-title">Catálogos</div>
+    <p class="card-desc">CRUD completo de productos, empleados, clientes y promociones.</p>
+    <ul class="card-features">
+      <li>Gestionar productos y precios</li>
+      <li>Altas y bajas de empleados</li>
+      <li>Registro de clientes</li>
+      <li>Control de promociones</li>
+    </ul>
+    <div class="card-cta">Ver catálogos →</div>
+  </div>
+
+  <div onclick="window.open('dashboard.html','_blank')" class="module-card" style="--card-color: #C0392B; cursor:pointer;">
+    <div class="card-number">MÓDULO 04</div>
+    <span class="card-icon">📊</span>
+    <div class="card-title">Dashboard</div>
+    <p class="card-desc">Indicadores clave del negocio con reportes por fecha y sucursal.</p>
+    <ul class="card-features">
+      <li>Ventas por sucursal</li>
+      <li>Top 10 productos</li>
+      <li>Rendimiento de empleados</li>
+      <li>Comparativo mensual</li>
+    </ul>
+    <div class="card-cta">Ver reportes →</div>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+
+<div class="stack-bar">
+  <span class="stack-label">Stack tecnológico</span>
+  <span class="stack-tag active">HTML / CSS / JS</span>
+  <span class="stack-tag">Node.js + Express</span>
+  <span class="stack-tag active">SQL Server</span>
+  <span class="stack-tag">mssql npm</span>
+  <span class="stack-tag active">Stored Procedures</span>
+</div>
+
+</body>
+</html>

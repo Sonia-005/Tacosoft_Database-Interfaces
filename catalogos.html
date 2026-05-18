@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TacoSoft — Catálogos</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rojo:#6b2722; --naranja:#E67E22; --amarillo:#F1C40F;
+    --verde:#27AE60; --azul:#3498DB; --morado:#8E44AD;
+    --oscuro:#0a0a0a; --panel:#100f0f; --card:#323030;
+    --hueso:#d5cece; --borde:rgba(251, 246, 246, 0.09); --gris:rgba(255,255,255,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--oscuro);font-family:'Syne',sans-serif;color:var(--hueso);min-height:100vh;}
+
+  
+  .topbar{
+    background:var(--panel);border-bottom:1px solid var(--borde);
+    padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;
+  }
+  .topbar-left{display:flex;align-items:center;gap:1rem;}
+  .back-btn{
+    background:none;border:1px solid var(--borde);color:var(--hueso);
+    padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;
+    font-size:.8rem;transition:all .2s;text-decoration:none;
+  }
+  .back-btn:hover{border-color:var(--verde);color:var(--verde);}
+  .topbar-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.06em;}
+  .topbar-title span{color:var(--verde);}
+
+ 
+  .layout{display:flex;min-height:calc(100vh - 57px);}
+
+  
+  .sidebar{
+    width:220px;flex-shrink:0;background:var(--panel);
+    border-right:1px solid var(--borde);padding:1.5rem 1rem;
+    display:flex;flex-direction:column;gap:.4rem;
+    position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;
+  }
+  .sidebar-label{
+    font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.15em;
+    color:rgba(245,239,224,.25);text-transform:uppercase;
+    padding:.5rem .75rem .25rem;
+  }
+  .nav-item{
+    display:flex;align-items:center;gap:.75rem;
+    padding:.6rem .75rem;border-radius:10px;cursor:pointer;
+    font-size:.88rem;font-weight:600;color:rgba(245,239,224,.6);
+    transition:all .2s;border:1px solid transparent;
+  }
+  .nav-item:hover{background:var(--gris);color:var(--hueso);}
+  .nav-item.active{background:rgba(255,255,255,.07);color:var(--hueso);border-color:var(--borde);}
+  .nav-item .nav-color{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .nav-count{
+    margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;
+    background:var(--gris);padding:.15rem .5rem;border-radius:10px;
+    color:rgba(245,239,224,.4);
+  }
+
+  
+  .main{flex:1;padding:2rem;overflow-y:auto;}
+
+  .section-header{
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;
+  }
+  .section-title-block{display:block;}
+  .section-eyebrow{font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.12em;color:rgba(245,239,224,.3);text-transform:uppercase;margin-bottom:.3rem;}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:.04em;}
+  .header-actions{display:flex;gap:.6rem;align-items:center;}
+
+  .search-input{
+    background:var(--gris);border:1px solid var(--borde);
+    color:var(--hueso);font-family:'Syne',sans-serif;font-size:.85rem;
+    padding:.55rem 1rem;border-radius:10px;outline:none;width:220px;
+    transition:border-color .2s;
+  }
+  .search-input::placeholder{color:rgba(245,239,224,.25);}
+  .search-input:focus{border-color:var(--verde);}
+
+  .btn-add{
+    background:var(--verde);color:#fff;font-family:'Syne',sans-serif;
+    font-weight:800;font-size:.85rem;border:none;padding:.6rem 1.2rem;
+    border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.4rem;
+    white-space:nowrap;
+  }
+  .btn-add:hover{background:#219a52;transform:translateY(-1px);}
+
+  
+  .table-wrapper{
+    background:var(--card);border:1px solid var(--borde);
+    border-radius:16px;overflow:hidden;
+  }
+  table{width:100%;border-collapse:collapse;}
+  thead th{
+    font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.12em;
+    color:rgba(245,239,224,.3);text-transform:uppercase;
+    padding:.8rem 1.1rem;text-align:left;
+    border-bottom:1px solid var(--borde);background:rgba(255,255,255,.02);
+  }
+  tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,.04);}
+  tbody td{padding:.8rem 1.1rem;font-size:.88rem;vertical-align:middle;}
+
+  .cell-mono{font-family:'DM Mono',monospace;font-size:.78rem;color:rgba(245,239,224,.5);}
+  .cell-bold{font-weight:700;}
+  .cell-price{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--naranja);}
+  .cell-price-sm{font-family:'DM Mono',monospace;font-size:.8rem;color:rgba(245,239,224,.4);}
+
+  .chip-status{
+    display:inline-flex;align-items:center;gap:.3rem;
+    padding:.25rem .65rem;border-radius:20px;
+    font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;
+  }
+  .chip-on {background:rgba(39,174,96,.12);color:var(--verde);border:1px solid rgba(39,174,96,.3);}
+  .chip-off{background:rgba(192,57,43,.12);color:var(--rojo);border:1px solid rgba(192,57,43,.3);}
+  .chip-inactivo{background:rgba(192,57,43,.12);color:var(--rojo);border:1px solid rgba(192,57,43,.3);}
+  .chip-activo{background:rgba(39,174,96,.12);color:var(--verde);border:1px solid rgba(39,174,96,.3);}
+
+  .row-actions{display:flex;gap:.4rem;}
+  .btn-edit,.btn-del{
+    background:none;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:600;
+    padding:.32rem .7rem;border-radius:7px;cursor:pointer;transition:all .2s;
+  }
+  .btn-edit{border:1px solid rgba(52,152,219,.3);color:var(--azul);}
+  .btn-edit:hover{background:rgba(52,152,219,.1);}
+  .btn-del{border:1px solid rgba(192,57,43,.3);color:var(--rojo);}
+  .btn-del:hover{background:rgba(192,57,43,.1);}
+
+  .empty-row td{text-align:center;padding:3rem;font-family:'DM Mono',monospace;font-size:.8rem;color:rgba(245,239,224,.2);}
+
+ 
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.78);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;
+    padding:1rem;
+  }
+  .modal-overlay.show{opacity:1;pointer-events:all;}
+  .modal-form{
+    background:var(--panel);border:1px solid var(--borde);
+    border-radius:20px;width:100%;max-width:520px;
+    transform:scale(.92);transition:transform .3s;overflow:hidden;
+    max-height:90vh;display:flex;flex-direction:column;
+  }
+  .modal-overlay.show .modal-form{transform:scale(1);}
+
+  .modal-head{
+    padding:1.4rem 1.8rem;border-bottom:1px solid var(--borde);
+    display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  }
+  .modal-head-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.05em;}
+  .modal-close{
+    background:none;border:1px solid var(--borde);color:var(--hueso);
+    width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem;
+    display:flex;align-items:center;justify-content:center;transition:all .2s;
+  }
+  .modal-close:hover{border-color:var(--rojo);color:var(--rojo);}
+
+  .modal-body{padding:1.5rem 1.8rem;overflow-y:auto;display:flex;flex-direction:column;gap:1rem;}
+
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+  .form-group{display:flex;flex-direction:column;gap:.4rem;}
+  .form-group.full{grid-column:1/-1;}
+  .form-group label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;color:rgba(245,239,224,.35);text-transform:uppercase;}
+  .form-group input,.form-group select,.form-group textarea{
+    background:var(--gris);border:1px solid var(--borde);
+    color:var(--hueso);font-family:'Syne',sans-serif;font-size:.9rem;
+    padding:.65rem .9rem;border-radius:10px;outline:none;transition:border-color .2s;
+  }
+  .form-group textarea{resize:vertical;min-height:70px;}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--verde);}
+  .form-group select option{background:#1C1C1C;}
+
+  .modal-foot{
+    padding:1.2rem 1.8rem;border-top:1px solid var(--borde);
+    display:flex;justify-content:flex-end;gap:.7rem;flex-shrink:0;
+  }
+  .btn-cancel-modal{
+    background:none;border:1px solid var(--borde);color:rgba(245,239,224,.6);
+    font-family:'Syne',sans-serif;font-size:.88rem;font-weight:600;
+    padding:.65rem 1.4rem;border-radius:10px;cursor:pointer;transition:all .2s;
+  }
+  .btn-cancel-modal:hover{border-color:var(--rojo);color:var(--rojo);}
+  .btn-save{
+    background:var(--verde);color:#fff;font-family:'Syne',sans-serif;
+    font-weight:800;font-size:.88rem;border:none;
+    padding:.65rem 1.8rem;border-radius:10px;cursor:pointer;transition:all .2s;
+  }
+  .btn-save:hover{background:#219a52;}
+
+  
+  .toast{
+    position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1C1C1C;border:1px solid var(--borde);
+    color:var(--hueso);font-family:'DM Mono',monospace;font-size:.8rem;
+    padding:.75rem 1.5rem;border-radius:10px;
+    opacity:0;transition:all .3s;z-index:200;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast.error{border-color:var(--rojo);color:var(--rojo);}
+  .toast.ok{border-color:var(--verde);color:var(--verde);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" onclick="if(window.parent !== window){ event.preventDefault(); window.parent.cerrarModulo(); }" class="back-btn">← Inicio</a>
+    <div class="topbar-title">Catá<span>logos</span></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  
+  <nav class="sidebar">
+    <div class="sidebar-label">Catálogos</div>
+    <div class="nav-item active" onclick="setSeccion('productos')" id="nav-productos">
+      <div class="nav-color" style="background:#E67E22"></div> Productos
+      <span class="nav-count" id="nc-productos">20</span>
+    </div>
+    <div class="nav-item" onclick="setSeccion('categorias')" id="nav-categorias">
+      <div class="nav-color" style="background:#3498DB"></div> Categorías
+      <span class="nav-count" id="nc-categorias">5</span>
+    </div>
+    <div class="nav-item" onclick="setSeccion('empleados')" id="nav-empleados">
+      <div class="nav-color" style="background:#8E44AD"></div> Empleados
+      <span class="nav-count" id="nc-empleados">13</span>
+    </div>
+    <div class="nav-item" onclick="setSeccion('clientes')" id="nav-clientes">
+      <div class="nav-color" style="background:#27AE60"></div> Clientes
+      <span class="nav-count" id="nc-clientes">10</span>
+    </div>
+    <div class="nav-item" onclick="setSeccion('promociones')" id="nav-promociones">
+      <div class="nav-color" style="background:#F1C40F"></div> Promociones
+      <span class="nav-count" id="nc-promociones">3</span>
+    </div>
+    <div class="nav-item" onclick="setSeccion('sucursales')" id="nav-sucursales">
+      <div class="nav-color" style="background:#C0392B"></div> Sucursales
+      <span class="nav-count" id="nc-sucursales">4</span>
+    </div>
+  </nav>
+
+  
+  <main class="main" id="main-content"></main>
+</div>
+
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-form">
+    <div class="modal-head">
+      <div class="modal-head-title" id="modal-title">Agregar</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel-modal" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardar()">Guardar →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+const DB = {
+  categorias: [
+    {id:1,nombre:'Tacos',    descripcion:'Tacos artesanales con tortilla de maíz'},
+    {id:2,nombre:'Burritos', descripcion:'Burritos de harina con rellenos generosos'},
+    {id:3,nombre:'Bebidas',  descripcion:'Aguas frescas, refrescos y bebidas calientes'},
+    {id:4,nombre:'Postres',  descripcion:'Dulces tradicionales sinaloenses'},
+    {id:5,nombre:'Extras',   descripcion:'Complementos, salsas y guarniciones'},
+  ],
+  productos: [
+    {id:1, nombre:'Taco de Birria',       desc:'Taco dorado bañado en consomé', cat_id:1, precio:45, costo:18, estatus:'disponible'},
+    {id:2, nombre:'Taco de Carne Asada',  desc:'Tortilla de maíz con carne norteña', cat_id:1, precio:40, costo:15, estatus:'disponible'},
+    {id:3, nombre:'Taco de Carnitas',     desc:'Carnitas de cerdo con salsa verde', cat_id:1, precio:38, costo:14, estatus:'disponible'},
+    {id:4, nombre:'Taco de Camarón',      desc:'Camarón al mojo de ajo', cat_id:1, precio:55, costo:22, estatus:'disponible'},
+    {id:5, nombre:'Taco de Frijoles',     desc:'Vegetariano con queso cotija', cat_id:1, precio:28, costo:9,  estatus:'disponible'},
+    {id:6, nombre:'Burrito de Carne',     desc:'Burrito grande con queso', cat_id:2, precio:75, costo:28, estatus:'disponible'},
+    {id:7, nombre:'Burrito de Pollo',     desc:'Pollo al chipotle con arroz', cat_id:2, precio:70, costo:25, estatus:'disponible'},
+    {id:8, nombre:'Burrito Vegetariano',  desc:'Verduras con pico de gallo', cat_id:2, precio:65, costo:22, estatus:'disponible'},
+    {id:9, nombre:'Burrito de Camarón',   desc:'Camarón al ajillo con guacamole', cat_id:2, precio:85, costo:35, estatus:'disponible'},
+    {id:10,nombre:'Agua de Horchata',     desc:'Horchata con canela 500ml', cat_id:3, precio:22, costo:5,  estatus:'disponible'},
+    {id:11,nombre:'Agua de Jamaica',      desc:'Jamaica fresca 500ml', cat_id:3, precio:20, costo:4,  estatus:'disponible'},
+    {id:12,nombre:'Refresco',             desc:'Lata 355ml', cat_id:3, precio:25, costo:9,  estatus:'disponible'},
+    {id:13,nombre:'Café de Olla',         desc:'Café con piloncillo', cat_id:3, precio:30, costo:6,  estatus:'disponible'},
+    {id:14,nombre:'Cajeta con Nieve',     desc:'Nieve con cajeta artesanal', cat_id:4, precio:45, costo:14, estatus:'disponible'},
+    {id:15,nombre:'Churros con Chocolate',desc:'Churros con chocolate caliente', cat_id:4, precio:40, costo:12, estatus:'disponible'},
+    {id:16,nombre:'Flan de Cajeta',       desc:'Flan casero sinaloense', cat_id:4, precio:35, costo:10, estatus:'disponible'},
+    {id:17,nombre:'Guacamole',            desc:'Aguacate fresco con limón', cat_id:5, precio:30, costo:8,  estatus:'disponible'},
+    {id:18,nombre:'Salsa Roja Extra',     desc:'Chile de árbol tatemado', cat_id:5, precio:10, costo:2,  estatus:'disponible'},
+    {id:19,nombre:'Orden de Queso',       desc:'Queso asadero derretido', cat_id:5, precio:20, costo:6,  estatus:'disponible'},
+    {id:20,nombre:'Tortillas Extras',     desc:'Tres tortillas de maíz', cat_id:5, precio:12, costo:3,  estatus:'no disponible'},
+  ],
+  empleados: [
+    {id:1, nombre:'Mario Lizárraga Félix',   tel:'667-111-0001', puesto:'gerente',    suc_id:1, salario:8500, ingreso:'2020-03-15', estatus:'activo'},
+    {id:2, nombre:'Karla Rojo Soto',          tel:'667-111-0002', puesto:'cajero',     suc_id:1, salario:4200, ingreso:'2021-06-01', estatus:'activo'},
+    {id:3, nombre:'Ernesto Valdez Palomino',  tel:'667-111-0003', puesto:'cocinero',   suc_id:1, salario:4800, ingreso:'2021-06-01', estatus:'activo'},
+    {id:4, nombre:'Lorena Meza Torres',       tel:'667-111-0004', puesto:'repartidor', suc_id:1, salario:3900, ingreso:'2022-01-10', estatus:'activo'},
+    {id:5, nombre:'Patricia Verdugo Higuera', tel:'669-222-0001', puesto:'gerente',    suc_id:2, salario:8500, ingreso:'2019-11-20', estatus:'activo'},
+    {id:6, nombre:'Jesús Cota Beltrán',       tel:'669-222-0002', puesto:'cajero',     suc_id:2, salario:4200, ingreso:'2022-03-14', estatus:'activo'},
+    {id:7, nombre:'Rosa Ibarra Quintero',     tel:'669-222-0003', puesto:'cocinero',   suc_id:2, salario:4800, ingreso:'2021-09-05', estatus:'activo'},
+    {id:8, nombre:'Rogelio Armenta Gastélum', tel:'668-333-0001', puesto:'gerente',    suc_id:3, salario:8500, ingreso:'2020-07-01', estatus:'activo'},
+    {id:9, nombre:'Fabiola Chávez Ríos',      tel:'668-333-0002', puesto:'cajero',     suc_id:3, salario:4200, ingreso:'2023-01-15', estatus:'activo'},
+    {id:10,nombre:'Benito Salazar Morales',   tel:'668-333-0003', puesto:'cocinero',   suc_id:3, salario:4800, ingreso:'2022-08-20', estatus:'activo'},
+    {id:11,nombre:'Leticia Ojeda Valenzuela', tel:'687-444-0001', puesto:'gerente',    suc_id:4, salario:8500, ingreso:'2021-02-28', estatus:'activo'},
+    {id:12,nombre:'Héctor Corrales Lugo',     tel:'687-444-0002', puesto:'cajero',     suc_id:4, salario:4200, ingreso:'2023-05-10', estatus:'activo'},
+    {id:13,nombre:'Alejandra Yépez Castro',   tel:'687-444-0003', puesto:'cocinero',   suc_id:4, salario:4800, ingreso:'2022-11-01', estatus:'inactivo'},
+  ],
+  clientes: [
+    {id:1, nombre:'Juan Pablo Burgos Medina',   tel:'667-500-1111', correo:'juan.burgos@gmail.com',   ciudad:'Culiacán',   reg:'2024-01-15'},
+    {id:2, nombre:'Sandra Elisa Félix Montoya', tel:'667-500-2222', correo:'sandrafelix@hotmail.com',  ciudad:'Culiacán',   reg:'2024-02-20'},
+    {id:3, nombre:'Roberto Celis Angulo',        tel:'669-500-3333', correo:'r.celis@outlook.com',      ciudad:'Mazatlán',   reg:'2024-03-05'},
+    {id:4, nombre:'Diana Laura Páez Gámez',      tel:'669-500-4444', correo:'dianapez@gmail.com',       ciudad:'Mazatlán',   reg:'2024-04-10'},
+    {id:5, nombre:'Carlos Humberto Meza Lugo',   tel:'668-500-5555', correo:'carlosmeza@gmail.com',     ciudad:'Los Mochis', reg:'2024-05-18'},
+    {id:6, nombre:'Miriam Judith Acosta Villa',  tel:'668-500-6666', correo:'miriam.acosta@yahoo.com',  ciudad:'Los Mochis', reg:'2024-06-22'},
+    {id:7, nombre:'Gustavo Adolfo Robles Salas', tel:'687-500-7777', correo:'gustavorobles@gmail.com',  ciudad:'Guasave',    reg:'2024-07-30'},
+    {id:8, nombre:'Verónica Irene Tirado Ruiz',  tel:'687-500-8888', correo:'veronica.tirado@gmail.com',ciudad:'Guasave',    reg:'2024-08-14'},
+    {id:9, nombre:'Martín Aurelio Leyva Ponce',  tel:'667-500-9999', correo:'martinleyva@hotmail.com',  ciudad:'Culiacán',   reg:'2024-09-02'},
+    {id:10,nombre:'Gabriela Sofía Urias Reyes',  tel:'669-500-0000', correo:'gabyurias@gmail.com',      ciudad:'Mazatlán',   reg:'2024-10-19'},
+  ],
+  promociones: [
+    {id:1, nombre:'Promo Verano 2025',  desc:'Descuento en tacos y bebidas', pct:15, inicio:'2025-06-01', fin:'2025-08-31'},
+    {id:2, nombre:'Semana del Burrito', desc:'Todos los burritos con descuento', pct:20, inicio:'2026-05-10', fin:'2026-05-17'},
+    {id:3, nombre:'Descuento Clásico',  desc:'Promo permanente en básicos', pct:10, inicio:'2026-01-01', fin:'2026-12-31'},
+  ],
+  sucursales: [
+    {id:1, nombre:'El Sinaloense Culiacán',   dir:'Blvd. Zapata 1250, Col. Chapultepec', ciudad:'Culiacán',  tel:'667-123-4567', estatus:'activa'},
+    {id:2, nombre:'El Sinaloense Mazatlán',   dir:'Av. Rafael Buelna 340, Col. Tellería', ciudad:'Mazatlán',  tel:'669-234-5678', estatus:'activa'},
+    {id:3, nombre:'El Sinaloense Los Mochis', dir:'Blvd. Jiquilpan 890, Col. Centro',    ciudad:'Los Mochis',tel:'668-345-6789', estatus:'activa'},
+    {id:4, nombre:'El Sinaloense Guasave',    dir:'Calle Ángel Flores 210, Col. El Palmar',ciudad:'Guasave', tel:'687-456-7890', estatus:'activa'},
+  ],
+};
+
+let seccionActual = 'productos';
+let editingId = null;
+let busqueda = '';
+let nextId = 100;
+
+const SUCURSAL_NOMBRES = {1:'Culiacán',2:'Mazatlán',3:'Los Mochis',4:'Guasave'};
+const CAT_NOMBRES = () => Object.fromEntries(DB.categorias.map(c=>[c.id,c.nombre]));
+
+
+function setSeccion(sec) {
+  seccionActual = sec;
+  busqueda = '';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-'+sec).classList.add('active');
+  renderSeccion();
+}
+
+function renderSeccion() {
+  actualizarConteos();
+  const sec = seccionActual;
+  if (sec==='productos')    renderProductos();
+  else if (sec==='categorias')  renderCategorias();
+  else if (sec==='empleados')   renderEmpleados();
+  else if (sec==='clientes')    renderClientes();
+  else if (sec==='promociones') renderPromociones();
+  else if (sec==='sucursales')  renderSucursales();
+}
+
+function actualizarConteos() {
+  document.getElementById('nc-productos').textContent   = DB.productos.length;
+  document.getElementById('nc-categorias').textContent  = DB.categorias.length;
+  document.getElementById('nc-empleados').textContent   = DB.empleados.length;
+  document.getElementById('nc-clientes').textContent    = DB.clientes.length;
+  document.getElementById('nc-promociones').textContent = DB.promociones.length;
+  document.getElementById('nc-sucursales').textContent  = DB.sucursales.length;
+}
+
+function filtrar(lista, campos) {
+  if (!busqueda) return lista;
+  const q = busqueda.toLowerCase();
+  return lista.filter(r => campos.some(f => String(r[f]||'').toLowerCase().includes(q)));
+}
+
+
+function renderProductos() {
+  const catMap = CAT_NOMBRES();
+  const lista = filtrar(DB.productos, ['nombre','desc']);
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    ${cabecera('Productos del Menú','naranja','productos')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Nombre</th><th>Categoría</th>
+          <th>Precio</th><th>Costo</th><th>Margen</th><th>Estatus</th><th>Acciones</th>
+        </tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(p => `
+            <tr>
+              <td class="cell-mono">${p.id}</td>
+              <td><div class="cell-bold">${p.nombre}</div><div style="font-size:.75rem;color:rgba(245,239,224,.35);margin-top:.15rem">${p.desc}</div></td>
+              <td>${catMap[p.cat_id]||'—'}</td>
+              <td class="cell-price">$${p.precio}</td>
+              <td class="cell-price-sm">$${p.costo}</td>
+              <td class="cell-price-sm">${(((p.precio-p.costo)/p.precio)*100).toFixed(0)}%</td>
+              <td>${p.estatus==='disponible'
+                ? '<span class="chip-status chip-on">● disponible</span>'
+                : '<span class="chip-status chip-off">○ no disponible</span>'}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('productos',${p.id})">✏ Editar</button>
+                <button class="btn-del"  onclick="darDeBaja('productos',${p.id},'estatus','disponible','no disponible')">⊘ Baja</button>
+              </div></td>
+            </tr>`).join('') : '<tr class="empty-row"><td colspan="8">Sin productos registrados</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+
+function renderCategorias() {
+  const lista = filtrar(DB.categorias, ['nombre','descripcion']);
+  document.getElementById('main-content').innerHTML = `
+    ${cabecera('Categorías del Menú','azul','categorias')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Descripción</th><th>Productos</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(c => {
+            const cnt = DB.productos.filter(p=>p.cat_id===c.id).length;
+            return `<tr>
+              <td class="cell-mono">${c.id}</td>
+              <td class="cell-bold">${c.nombre}</td>
+              <td style="color:rgba(245,239,224,.55);font-size:.85rem">${c.descripcion}</td>
+              <td class="cell-mono">${cnt}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('categorias',${c.id})">✏ Editar</button>
+              </div></td>
+            </tr>`;}).join('') : '<tr class="empty-row"><td colspan="5">Sin categorías</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+
+function renderEmpleados() {
+  const lista = filtrar(DB.empleados, ['nombre','puesto']);
+  document.getElementById('main-content').innerHTML = `
+    ${cabecera('Empleados','morado','empleados')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Puesto</th><th>Sucursal</th><th>Salario Q.</th><th>Ingreso</th><th>Estatus</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(e => `
+            <tr>
+              <td class="cell-mono">${e.id}</td>
+              <td class="cell-bold">${e.nombre}<div style="font-size:.72rem;color:rgba(245,239,224,.35)">${e.tel}</div></td>
+              <td style="text-transform:capitalize">${e.puesto}</td>
+              <td>${SUCURSAL_NOMBRES[e.suc_id]||'—'}</td>
+              <td class="cell-price">$${e.salario.toLocaleString()}</td>
+              <td class="cell-mono">${e.ingreso}</td>
+              <td>${e.estatus==='activo'
+                ? '<span class="chip-status chip-activo">● activo</span>'
+                : '<span class="chip-status chip-inactivo">○ inactivo</span>'}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('empleados',${e.id})">✏ Editar</button>
+                <button class="btn-del"  onclick="darDeBaja('empleados',${e.id},'estatus','activo','inactivo')">⊘ Baja</button>
+              </div></td>
+            </tr>`).join('') : '<tr class="empty-row"><td colspan="8">Sin empleados</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+
+function renderClientes() {
+  const lista = filtrar(DB.clientes, ['nombre','correo','ciudad']);
+  document.getElementById('main-content').innerHTML = `
+    ${cabecera('Clientes Frecuentes','verde','clientes')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Ciudad</th><th>Registro</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(c => `
+            <tr>
+              <td class="cell-mono">${c.id}</td>
+              <td class="cell-bold">${c.nombre}</td>
+              <td class="cell-mono">${c.tel}</td>
+              <td style="font-size:.82rem;color:rgba(245,239,224,.55)">${c.correo}</td>
+              <td>${c.ciudad}</td>
+              <td class="cell-mono">${c.reg}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('clientes',${c.id})">✏ Editar</button>
+              </div></td>
+            </tr>`).join('') : '<tr class="empty-row"><td colspan="7">Sin clientes</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+
+function renderPromociones() {
+  const hoy = new Date('2026-05-17');
+  const lista = filtrar(DB.promociones, ['nombre','desc']);
+  document.getElementById('main-content').innerHTML = `
+    ${cabecera('Promociones','amarillo','promociones')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Descuento</th><th>Vigencia</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(p => {
+            const inicio = new Date(p.inicio), fin = new Date(p.fin);
+            const vigente = hoy >= inicio && hoy <= fin;
+            return `<tr>
+              <td class="cell-mono">${p.id}</td>
+              <td><div class="cell-bold">${p.nombre}</div><div style="font-size:.75rem;color:rgba(245,239,224,.35)">${p.desc}</div></td>
+              <td><span style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--amarillo)">${p.pct}%</span></td>
+              <td class="cell-mono">${p.inicio} → ${p.fin}</td>
+              <td>${vigente
+                ? '<span class="chip-status chip-on">● vigente</span>'
+                : '<span class="chip-status chip-off">○ expirada</span>'}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('promociones',${p.id})">✏ Editar</button>
+              </div></td>
+            </tr>`;}).join('') : '<tr class="empty-row"><td colspan="6">Sin promociones</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderSucursales() {
+  const lista = filtrar(DB.sucursales, ['nombre','ciudad']);
+  document.getElementById('main-content').innerHTML = `
+    ${cabecera('Sucursales','rojo','sucursales')}
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Ciudad</th><th>Dirección</th><th>Teléfono</th><th>Estatus</th><th>Acciones</th></tr></thead>
+        <tbody>
+          ${lista.length ? lista.map(s => `
+            <tr>
+              <td class="cell-mono">${s.id}</td>
+              <td class="cell-bold">${s.nombre}</td>
+              <td>${s.ciudad}</td>
+              <td style="font-size:.82rem;color:rgba(245,239,224,.55)">${s.dir}</td>
+              <td class="cell-mono">${s.tel}</td>
+              <td>${s.estatus==='activa'
+                ? '<span class="chip-status chip-on">● activa</span>'
+                : '<span class="chip-status chip-off">○ cerrada</span>'}</td>
+              <td><div class="row-actions">
+                <button class="btn-edit" onclick="abrirEditar('sucursales',${s.id})">✏ Editar</button>
+                <button class="btn-del"  onclick="darDeBaja('sucursales',${s.id},'estatus','activa','cerrada')">⊘ Cerrar</button>
+              </div></td>
+            </tr>`).join('') : '<tr class="empty-row"><td colspan="7">Sin sucursales</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+
+const COLORES = {naranja:'var(--naranja)',azul:'var(--azul)',morado:'var(--morado)',verde:'var(--verde)',amarillo:'var(--amarillo)',rojo:'var(--rojo)'};
+
+function cabecera(titulo, color, sec) {
+  return `
+    <div class="section-header">
+      <div class="section-title-block">
+        <div class="section-eyebrow">Catálogo</div>
+        <div class="section-title" style="color:${COLORES[color]}">${titulo}</div>
+      </div>
+      <div class="header-actions">
+        <input type="text" class="search-input" placeholder="Buscar..." value="${busqueda}"
+          oninput="busqueda=this.value;renderSeccion()">
+        <button class="btn-add" onclick="abrirNuevo('${sec}')">+ Agregar</button>
+      </div>
+    </div>`;
+}
+
+
+function darDeBaja(tabla, id, campo, valActivo, valInactivo) {
+  const reg = DB[tabla].find(r => r.id === id);
+  if (!reg) return;
+  if (reg[campo] === valInactivo) return toast('Ya está dado de baja', 'error');
+  if (!confirm(`¿Dar de baja este registro? Se marcará como "${valInactivo}" (baja lógica).`)) return;
+  reg[campo] = valInactivo;
+  renderSeccion();
+  toast('Baja lógica aplicada correctamente', 'ok');
+}
+
+
+function abrirNuevo(sec) {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Agregar ' + {
+    productos:'Producto', categorias:'Categoría', empleados:'Empleado',
+    clientes:'Cliente', promociones:'Promoción', sucursales:'Sucursal'
+  }[sec];
+  document.getElementById('modal-body').innerHTML = formHTML(sec, null);
+  document.getElementById('modal').classList.add('show');
+}
+
+function abrirEditar(sec, id) {
+  editingId = id;
+  const reg = DB[sec].find(r => r.id === id);
+  document.getElementById('modal-title').textContent = 'Editar ' + {
+    productos:'Producto', categorias:'Categoría', empleados:'Empleado',
+    clientes:'Cliente', promociones:'Promoción', sucursales:'Sucursal'
+  }[sec];
+  document.getElementById('modal-body').innerHTML = formHTML(sec, reg);
+  document.getElementById('modal').classList.add('show');
+}
+
+function cerrarModal() {
+  document.getElementById('modal').classList.remove('show');
+  editingId = null;
+}
+
+document.getElementById('modal').addEventListener('click', e => { if(e.target.id==='modal') cerrarModal(); });
+
+function formHTML(sec, data) {
+  const v = (f, def='') => data ? (data[f] ?? def) : def;
+  const optCats = DB.categorias.map(c => `<option value="${c.id}" ${v('cat_id')==c.id?'selected':''}>${c.nombre}</option>`).join('');
+  const optSucs = DB.sucursales.map(s => `<option value="${s.id}" ${v('suc_id')==s.id?'selected':''}>${s.nombre}</option>`).join('');
+
+  if (sec==='productos') return `
+    <div class="form-row">
+      <div class="form-group full"><label>Nombre</label><input id="f-nombre" value="${v('nombre')}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Categoría</label><select id="f-cat_id">${optCats}</select></div>
+      <div class="form-group"><label>Estatus</label><select id="f-estatus">
+        <option value="disponible" ${v('estatus')==='disponible'?'selected':''}>Disponible</option>
+        <option value="no disponible" ${v('estatus')==='no disponible'?'selected':''}>No disponible</option>
+      </select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Precio ($)</label><input id="f-precio" type="number" step="0.01" value="${v('precio',0)}"></div>
+      <div class="form-group"><label>Costo ($)</label><input id="f-costo" type="number" step="0.01" value="${v('costo',0)}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full"><label>Descripción</label><textarea id="f-desc">${v('desc')}</textarea></div>
+    </div>`;
+
+  if (sec==='categorias') return `
+    <div class="form-group"><label>Nombre</label><input id="f-nombre" value="${v('nombre')}"></div>
+    <div class="form-group"><label>Descripción</label><textarea id="f-descripcion">${v('descripcion')}</textarea></div>`;
+
+  if (sec==='empleados') return `
+    <div class="form-row">
+      <div class="form-group full"><label>Nombre Completo</label><input id="f-nombre" value="${v('nombre')}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Teléfono</label><input id="f-tel" value="${v('tel')}"></div>
+      <div class="form-group"><label>Puesto</label><select id="f-puesto">
+        ${['cajero','cocinero','repartidor','gerente'].map(p=>`<option ${v('puesto')===p?'selected':''}>${p}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Sucursal</label><select id="f-suc_id">${optSucs}</select></div>
+      <div class="form-group"><label>Salario Quincenal</label><input id="f-salario" type="number" value="${v('salario',0)}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha Ingreso</label><input id="f-ingreso" type="date" value="${v('ingreso')}"></div>
+      <div class="form-group"><label>Estatus</label><select id="f-estatus">
+        <option value="activo" ${v('estatus')==='activo'?'selected':''}>Activo</option>
+        <option value="inactivo" ${v('estatus')==='inactivo'?'selected':''}>Inactivo</option>
+      </select></div>
+    </div>`;
+
+  if (sec==='clientes') return `
+    <div class="form-group"><label>Nombre Completo</label><input id="f-nombre" value="${v('nombre')}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Teléfono</label><input id="f-tel" value="${v('tel')}"></div>
+      <div class="form-group"><label>Ciudad</label><input id="f-ciudad" value="${v('ciudad')}"></div>
+    </div>
+    <div class="form-group"><label>Correo Electrónico</label><input id="f-correo" type="email" value="${v('correo')}"></div>`;
+
+  if (sec==='promociones') return `
+    <div class="form-group"><label>Nombre</label><input id="f-nombre" value="${v('nombre')}"></div>
+    <div class="form-group"><label>Descripción</label><textarea id="f-desc">${v('desc')}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Descuento (%)</label><input id="f-pct" type="number" min="1" max="100" value="${v('pct',10)}"></div>
+      <div class="form-group"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha Inicio</label><input id="f-inicio" type="date" value="${v('inicio')}"></div>
+      <div class="form-group"><label>Fecha Fin</label><input id="f-fin" type="date" value="${v('fin')}"></div>
+    </div>`;
+
+  if (sec==='sucursales') return `
+    <div class="form-group"><label>Nombre</label><input id="f-nombre" value="${v('nombre')}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Ciudad</label><input id="f-ciudad" value="${v('ciudad')}"></div>
+      <div class="form-group"><label>Teléfono</label><input id="f-tel" value="${v('tel')}"></div>
+    </div>
+    <div class="form-group"><label>Dirección</label><input id="f-dir" value="${v('dir')}"></div>
+    <div class="form-group"><label>Estatus</label><select id="f-estatus">
+      <option value="activa" ${v('estatus')==='activa'?'selected':''}>Activa</option>
+      <option value="cerrada" ${v('estatus')==='cerrada'?'selected':''}>Cerrada</option>
+    </select></div>`;
+
+  return '';
+}
+
+
+function g(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
+
+function guardar() {
+  const sec = seccionActual;
+  let data = {};
+
+  if (sec==='productos') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), cat_id:parseInt(g('f-cat_id')), precio:parseFloat(g('f-precio'))||0,
+            costo:parseFloat(g('f-costo'))||0, desc:g('f-desc'), estatus:g('f-estatus')};
+  } else if (sec==='categorias') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), descripcion:g('f-descripcion')};
+  } else if (sec==='empleados') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), tel:g('f-tel'), puesto:g('f-puesto'),
+            suc_id:parseInt(g('f-suc_id')), salario:parseFloat(g('f-salario'))||0,
+            ingreso:g('f-ingreso'), estatus:g('f-estatus')};
+  } else if (sec==='clientes') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), tel:g('f-tel'), correo:g('f-correo'), ciudad:g('f-ciudad')};
+  } else if (sec==='promociones') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), desc:g('f-desc'), pct:parseFloat(g('f-pct'))||10,
+            inicio:g('f-inicio'), fin:g('f-fin')};
+  } else if (sec==='sucursales') {
+    if (!g('f-nombre')) return toast('El nombre es obligatorio', 'error');
+    data = {nombre:g('f-nombre'), ciudad:g('f-ciudad'), tel:g('f-tel'), dir:g('f-dir'), estatus:g('f-estatus')};
+  }
+
+  if (editingId !== null) {
+    const idx = DB[sec].findIndex(r => r.id === editingId);
+    if (idx >= 0) DB[sec][idx] = {...DB[sec][idx], ...data};
+    toast('Registro actualizado ✓', 'ok');
+  } else {
+    data.id = ++nextId;
+    if (sec==='clientes') data.reg = new Date().toISOString().slice(0,10);
+    DB[sec].push(data);
+    toast('Registro creado ✓', 'ok');
+  }
+
+  cerrarModal();
+  renderSeccion();
+}
+
+function toast(msg, tipo='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (tipo ? ' '+tipo : '');
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+renderSeccion();
+</script>
+</body>
+</html>

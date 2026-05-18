@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TacoSoft — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --rojo:#C0392B; --naranja:#E67E22; --amarillo:#F1C40F;
+    --verde:#27AE60; --azul:#3498DB; --cian:#1ABC9C; --morado:#8E44AD;
+    --oscuro:#111; --panel:#181818; --card:#1C1C1C;
+    --hueso:#F5EFE0; --borde:rgba(255,255,255,.09); --gris:rgba(255,255,255,.05);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--oscuro);font-family:'Syne',sans-serif;color:var(--hueso);min-height:100vh;}
+
+  
+  .topbar{
+    background:var(--panel);border-bottom:1px solid var(--borde);
+    padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;
+  }
+  .topbar-left{display:flex;align-items:center;gap:1rem;}
+  .back-btn{
+    background:none;border:1px solid var(--borde);color:var(--hueso);
+    padding:.4rem .9rem;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;
+    font-size:.8rem;transition:all .2s;text-decoration:none;
+  }
+  .back-btn:hover{border-color:var(--rojo);color:var(--rojo);}
+  .topbar-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.06em;}
+  .topbar-title span{color:var(--rojo);}
+
+  
+  .filtros-bar{
+    background:var(--panel);border-bottom:1px solid var(--borde);
+    padding:.9rem 2rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  }
+  .filtro-label{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.12em;color:rgba(245,239,224,.3);text-transform:uppercase;}
+  .filtro-input,.filtro-select{
+    background:var(--gris);border:1px solid var(--borde);color:var(--hueso);
+    font-family:'Syne',sans-serif;font-size:.82rem;
+    padding:.5rem .9rem;border-radius:10px;outline:none;transition:border-color .2s;
+  }
+  .filtro-input:focus,.filtro-select:focus{border-color:var(--rojo);}
+  .filtro-select option{background:#1C1C1C;}
+  .btn-aplicar{
+    background:var(--rojo);color:#fff;font-family:'Syne',sans-serif;font-weight:800;
+    font-size:.82rem;border:none;padding:.55rem 1.3rem;border-radius:10px;cursor:pointer;
+    transition:all .2s;
+  }
+  .btn-aplicar:hover{background:#a93226;}
+
+  
+  .dash{padding:1.8rem 2rem;max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:2rem;}
+
+  
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;}
+  .kpi-card{
+    background:var(--card);border:1px solid var(--borde);border-radius:16px;
+    padding:1.4rem 1.5rem;position:relative;overflow:hidden;
+    animation:fadeUp .4s ease both;
+  }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .kpi-card::before{
+    content:'';position:absolute;top:0;right:0;
+    width:80px;height:80px;border-radius:50%;
+    background:var(--kpi-color,var(--naranja));
+    opacity:.07;transform:translate(20px,-20px);
+  }
+  .kpi-icon{font-size:1.5rem;margin-bottom:.75rem;}
+  .kpi-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;color:rgba(245,239,224,.35);text-transform:uppercase;margin-bottom:.4rem;}
+  .kpi-value{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:.03em;color:var(--kpi-color,var(--naranja));line-height:1;}
+  .kpi-sub{font-family:'DM Mono',monospace;font-size:.68rem;color:rgba(245,239,224,.3);margin-top:.4rem;}
+
+ 
+  .reports-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;}
+  .report-card{
+    background:var(--card);border:1px solid var(--borde);border-radius:16px;
+    padding:1.5rem;animation:fadeUp .5s ease both;
+  }
+  .report-card.full{grid-column:1/-1;}
+  .report-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.05em;margin-bottom:.3rem;}
+  .report-desc{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.08em;color:rgba(245,239,224,.3);margin-bottom:1.2rem;text-transform:uppercase;}
+
+  
+  .mini-table{width:100%;border-collapse:collapse;}
+  .mini-table thead th{
+    font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;
+    color:rgba(245,239,224,.25);text-transform:uppercase;
+    padding:.5rem .7rem;text-align:left;border-bottom:1px solid var(--borde);
+  }
+  .mini-table tbody tr{border-bottom:1px solid rgba(255,255,255,.04);}
+  .mini-table tbody tr:last-child{border-bottom:none;}
+  .mini-table tbody td{padding:.6rem .7rem;font-size:.84rem;vertical-align:middle;}
+  .rank-num{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:rgba(245,239,224,.2);}
+  .cell-money{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--naranja);}
+  .cell-mono{font-family:'DM Mono',monospace;font-size:.75rem;color:rgba(245,239,224,.5);}
+
+  /* BARRA DE PROGRESO */
+  .bar-row{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.9rem;}
+  .bar-row:last-child{margin-bottom:0;}
+  .bar-info{display:flex;justify-content:space-between;align-items:baseline;}
+  .bar-name{font-size:.85rem;font-weight:600;}
+  .bar-val{font-family:'DM Mono',monospace;font-size:.75rem;color:rgba(245,239,224,.5);}
+  .bar-track{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+
+  /* SIN MOVIMIENTO */
+  .no-mov-list{display:flex;flex-direction:column;gap:.5rem;}
+  .no-mov-item{
+    display:flex;align-items:center;justify-content:space-between;
+    background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.15);
+    border-radius:10px;padding:.65rem 1rem;font-size:.85rem;
+  }
+  .no-mov-cat{font-family:'DM Mono',monospace;font-size:.68rem;color:rgba(245,239,224,.35);}
+  .no-mov-precio{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--rojo);}
+
+  /* CHART */
+  canvas{max-height:260px;}
+
+  /* PERIODO INFO */
+  .periodo-badge{
+    display:inline-flex;align-items:center;gap:.5rem;
+    font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.08em;
+    color:rgba(245,239,224,.35);
+    background:var(--gris);border:1px solid var(--borde);
+    padding:.35rem .9rem;border-radius:20px;margin-left:auto;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" onclick="if(window.parent !== window){ event.preventDefault(); window.parent.cerrarModulo(); }" class="back-btn">← Inicio</a>
+    <div class="topbar-title">Dash<span>board</span></div>
+  </div>
+  <div class="periodo-badge" id="periodo-badge">📅 Todo el período</div>
+</div>
+
+<!-- FILTROS -->
+<div class="filtros-bar">
+  <span class="filtro-label">Desde</span>
+  <input type="date" class="filtro-input" id="f-inicio" value="2026-04-01">
+  <span class="filtro-label">Hasta</span>
+  <input type="date" class="filtro-input" id="f-fin" value="2026-05-17">
+  <span class="filtro-label">Sucursal</span>
+  <select class="filtro-select" id="f-suc" onchange="aplicarFiltros()">
+    <option value="">Todas</option>
+    <option value="1">Culiacán</option>
+    <option value="2">Mazatlán</option>
+    <option value="3">Los Mochis</option>
+    <option value="4">Guasave</option>
+  </select>
+  <button class="btn-aplicar" onclick="aplicarFiltros()">Actualizar →</button>
+</div>
+
+<div class="dash">
+  <!-- KPIs -->
+  <div class="kpis" id="kpis"></div>
+  <!-- Reportes -->
+  <div class="reports-grid" id="reports-grid"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATOS DEMO COMPLETOS
+// ═══════════════════════════════════════════════════
+const PEDIDOS = [
+  {id:1,  fecha:'2026-04-01', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:160,
+   items:[{prod_id:1,nombre:'Taco de Birria',cat:'Tacos',q:2,p:45},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:2,  fecha:'2026-04-01', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:198,
+   items:[{prod_id:6,nombre:'Burrito de Carne',cat:'Burritos',q:2,p:75},{prod_id:12,nombre:'Refresco',cat:'Bebidas',q:2,p:25},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:2,p:10},{prod_id:15,nombre:'Churros',cat:'Postres',q:1,p:40}]},
+  {id:3,  fecha:'2026-04-02', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:175,
+   items:[{prod_id:4,nombre:'Taco de Camarón',cat:'Tacos',q:2,p:55},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:2,p:20},{prod_id:19,nombre:'Orden de Queso',cat:'Extras',q:1,p:20},{prod_id:16,nombre:'Flan de Cajeta',cat:'Postres',q:1,p:35}]},
+  {id:4,  fecha:'2026-04-02', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:240,
+   items:[{prod_id:9,nombre:'Burrito de Camarón',cat:'Burritos',q:2,p:85},{prod_id:12,nombre:'Refresco',cat:'Bebidas',q:2,p:25},{prod_id:14,nombre:'Cajeta con Nieve',cat:'Postres',q:1,p:45}]},
+  {id:5,  fecha:'2026-04-03', suc_id:3, suc:'Los Mochis', emp_id:9, emp:'Fabiola Chávez',est:'entregado', total:135,
+   items:[{prod_id:2,nombre:'Taco de Carne Asada',cat:'Tacos',q:2,p:40},{prod_id:3,nombre:'Taco de Carnitas',cat:'Tacos',q:1,p:38},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:6,  fecha:'2026-04-03', suc_id:4, suc:'Guasave',   emp_id:12,emp:'Héctor Corrales',est:'entregado', total:100,
+   items:[{prod_id:5,nombre:'Taco de Frijoles',cat:'Tacos',q:2,p:28},{prod_id:13,nombre:'Café de Olla',cat:'Bebidas',q:1,p:30},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:2,p:10}]},
+  {id:7,  fecha:'2026-04-10', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:270,
+   items:[{prod_id:1,nombre:'Taco de Birria',cat:'Tacos',q:3,p:45},{prod_id:7,nombre:'Burrito de Pollo',cat:'Burritos',q:1,p:70},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:15,nombre:'Churros',cat:'Postres',q:1,p:40}]},
+  {id:8,  fecha:'2026-04-10', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:185,
+   items:[{prod_id:6,nombre:'Burrito de Carne',cat:'Burritos',q:1,p:75},{prod_id:4,nombre:'Taco de Camarón',cat:'Tacos',q:1,p:55},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:2,p:20},{prod_id:19,nombre:'Orden de Queso',cat:'Extras',q:1,p:20}]},
+  {id:9,  fecha:'2026-04-15', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:150,
+   items:[{prod_id:8,nombre:'Burrito Vegetariano',cat:'Burritos',q:1,p:65},{prod_id:12,nombre:'Refresco',cat:'Bebidas',q:2,p:25},{prod_id:16,nombre:'Flan de Cajeta',cat:'Postres',q:1,p:35}]},
+  {id:10, fecha:'2026-04-16', suc_id:3, suc:'Los Mochis', emp_id:9, emp:'Fabiola Chávez',est:'entregado', total:220,
+   items:[{prod_id:2,nombre:'Taco de Carne Asada',cat:'Tacos',q:3,p:40},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:14,nombre:'Cajeta con Nieve',cat:'Postres',q:1,p:45},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:11, fecha:'2026-04-17', suc_id:4, suc:'Guasave',   emp_id:12,emp:'Héctor Corrales',est:'entregado', total:130,
+   items:[{prod_id:3,nombre:'Taco de Carnitas',cat:'Tacos',q:2,p:38},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:1,p:20},{prod_id:15,nombre:'Churros',cat:'Postres',q:1,p:40}]},
+  {id:12, fecha:'2026-04-20', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:178,
+   items:[{prod_id:1,nombre:'Taco de Birria',cat:'Tacos',q:2,p:45},{prod_id:13,nombre:'Café de Olla',cat:'Bebidas',q:2,p:30},{prod_id:19,nombre:'Orden de Queso',cat:'Extras',q:1,p:20},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:1,p:10}]},
+  {id:13, fecha:'2026-04-22', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:195,
+   items:[{prod_id:4,nombre:'Taco de Camarón',cat:'Tacos',q:2,p:55},{prod_id:7,nombre:'Burrito de Pollo',cat:'Burritos',q:1,p:70},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:1,p:10}]},
+  {id:14, fecha:'2026-04-25', suc_id:3, suc:'Los Mochis', emp_id:9, emp:'Fabiola Chávez',est:'entregado', total:145,
+   items:[{prod_id:5,nombre:'Taco de Frijoles',cat:'Tacos',q:3,p:28},{prod_id:12,nombre:'Refresco',cat:'Bebidas',q:2,p:25},{prod_id:16,nombre:'Flan de Cajeta',cat:'Postres',q:1,p:35}]},
+  {id:15, fecha:'2026-04-28', suc_id:4, suc:'Guasave',   emp_id:12,emp:'Héctor Corrales',est:'entregado', total:255,
+   items:[{prod_id:9,nombre:'Burrito de Camarón',cat:'Burritos',q:2,p:85},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:14,nombre:'Cajeta con Nieve',cat:'Postres',q:1,p:45}]},
+  {id:16, fecha:'2026-05-01', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:120,
+   items:[{prod_id:2,nombre:'Taco de Carne Asada',cat:'Tacos',q:2,p:40},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:2,p:20}]},
+  {id:17, fecha:'2026-05-03', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:210,
+   items:[{prod_id:6,nombre:'Burrito de Carne',cat:'Burritos',q:2,p:75},{prod_id:13,nombre:'Café de Olla',cat:'Bebidas',q:2,p:30}]},
+  {id:18, fecha:'2026-05-05', suc_id:3, suc:'Los Mochis', emp_id:9, emp:'Fabiola Chávez',est:'entregado', total:160,
+   items:[{prod_id:3,nombre:'Taco de Carnitas',cat:'Tacos',q:2,p:38},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:19, fecha:'2026-05-06', suc_id:4, suc:'Guasave',   emp_id:12,emp:'Héctor Corrales',est:'entregado', total:195,
+   items:[{prod_id:7,nombre:'Burrito de Pollo',cat:'Burritos',q:2,p:70},{prod_id:15,nombre:'Churros',cat:'Postres',q:1,p:40},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:1,p:10}]},
+  {id:20, fecha:'2026-05-08', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:230,
+   items:[{prod_id:1,nombre:'Taco de Birria',cat:'Tacos',q:3,p:45},{prod_id:12,nombre:'Refresco',cat:'Bebidas',q:2,p:25},{prod_id:14,nombre:'Cajeta con Nieve',cat:'Postres',q:1,p:45}]},
+  {id:21, fecha:'2026-05-09', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:185,
+   items:[{prod_id:4,nombre:'Taco de Camarón',cat:'Tacos',q:2,p:55},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:2,p:20},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:22, fecha:'2026-05-10', suc_id:3, suc:'Los Mochis', emp_id:9, emp:'Fabiola Chávez',est:'entregado', total:150,
+   items:[{prod_id:5,nombre:'Taco de Frijoles',cat:'Tacos',q:2,p:28},{prod_id:13,nombre:'Café de Olla',cat:'Bebidas',q:1,p:30},{prod_id:19,nombre:'Orden de Queso',cat:'Extras',q:1,p:20},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:2,p:10}]},
+  {id:27, fecha:'2026-05-15', suc_id:1, suc:'Culiacán',  emp_id:2, emp:'Karla Rojo',    est:'entregado', total:178,
+   items:[{prod_id:1,nombre:'Taco de Birria',cat:'Tacos',q:2,p:45},{prod_id:7,nombre:'Burrito de Pollo',cat:'Burritos',q:1,p:70},{prod_id:18,nombre:'Salsa Roja',cat:'Extras',q:1,p:10}]},
+  {id:28, fecha:'2026-05-15', suc_id:4, suc:'Guasave',   emp_id:12,emp:'Héctor Corrales',est:'entregado', total:195,
+   items:[{prod_id:4,nombre:'Taco de Camarón',cat:'Tacos',q:2,p:55},{prod_id:10,nombre:'Agua de Horchata',cat:'Bebidas',q:2,p:22},{prod_id:17,nombre:'Guacamole',cat:'Extras',q:1,p:30}]},
+  {id:29, fecha:'2026-05-15', suc_id:2, suc:'Mazatlán',  emp_id:6, emp:'Jesús Cota',    est:'entregado', total:145,
+   items:[{prod_id:3,nombre:'Taco de Carnitas',cat:'Tacos',q:2,p:38},{prod_id:11,nombre:'Agua de Jamaica',cat:'Bebidas',q:1,p:20},{prod_id:16,nombre:'Flan de Cajeta',cat:'Postres',q:1,p:35}]},
+];
+
+const TODOS_PRODUCTOS = [
+  {id:1,'Taco de Birria':1},{id:2},{id:3},{id:4},{id:5},{id:6},{id:7},{id:8},{id:9},
+  {id:10},{id:11},{id:12},{id:13},{id:14},{id:15},{id:16},{id:17},{id:18},{id:19},{id:20}
+];
+const PRODUCTOS_NOMBRES = {
+  1:'Taco de Birria',2:'Taco de Carne Asada',3:'Taco de Carnitas',4:'Taco de Camarón',5:'Taco de Frijoles',
+  6:'Burrito de Carne',7:'Burrito de Pollo',8:'Burrito Vegetariano',9:'Burrito de Camarón',
+  10:'Agua de Horchata',11:'Agua de Jamaica',12:'Refresco',13:'Café de Olla',
+  14:'Cajeta con Nieve',15:'Churros con Chocolate',16:'Flan de Cajeta',
+  17:'Guacamole',18:'Salsa Roja Extra',19:'Orden de Queso',20:'Tortillas Extras'
+};
+
+const COLORES_SUC = ['#E67E22','#3498DB','#27AE60','#C0392B'];
+const COLORES_CAT = ['#E67E22','#3498DB','#27AE60','#C0392B','#8E44AD'];
+let chartSuc = null, chartMens = null, chartCat = null;
+
+// ═══════════════════════════════════════════════════
+// LÓGICA DE FILTRADO Y CÁLCULO
+// ═══════════════════════════════════════════════════
+function filtrarPedidos() {
+  const inicio = document.getElementById('f-inicio').value;
+  const fin    = document.getElementById('f-fin').value;
+  const suc    = document.getElementById('f-suc').value;
+  return PEDIDOS.filter(p =>
+    p.est === 'entregado' &&
+    p.fecha >= inicio && p.fecha <= fin &&
+    (!suc || p.suc_id == suc)
+  );
+}
+
+function aplicarFiltros() {
+  const inicio = document.getElementById('f-inicio').value;
+  const fin    = document.getElementById('f-fin').value;
+  const suc    = document.getElementById('f-suc').value;
+  const sucNombre = suc ? ['','Culiacán','Mazatlán','Los Mochis','Guasave'][suc] : 'Todas las sucursales';
+  document.getElementById('periodo-badge').textContent = `📅 ${inicio} → ${fin} · ${sucNombre}`;
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const pedidos = filtrarPedidos();
+  renderKPIs(pedidos);
+  renderReportes(pedidos);
+}
+
+// ═══════════════════════════════════════════════════
+// KPIs
+// ═══════════════════════════════════════════════════
+function renderKPIs(pedidos) {
+  const totalVentas = pedidos.reduce((s,p)=>s+p.total,0);
+  const ticketProm  = pedidos.length ? totalVentas/pedidos.length : 0;
+  const totalItems  = pedidos.reduce((s,p)=>s+p.items.reduce((si,i)=>si+i.q,0),0);
+
+  const allItems = pedidos.flatMap(p=>p.items);
+  const prodCounts = {};
+  allItems.forEach(i=>{ prodCounts[i.nombre]=(prodCounts[i.nombre]||0)+i.q; });
+  const topProd = Object.entries(prodCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  const kpis = [
+    {icon:'💰', label:'Ventas Totales',    value:`$${totalVentas.toLocaleString('es-MX',{minimumFractionDigits:0})}`, sub:`${pedidos.length} pedidos entregados`, color:'var(--naranja)'},
+    {icon:'🧾', label:'Ticket Promedio',   value:`$${ticketProm.toFixed(0)}`,    sub:'por pedido',               color:'var(--azul)'},
+    {icon:'🌮', label:'Productos Vendidos',value:totalItems,                     sub:'unidades totales',          color:'var(--verde)'},
+    {icon:'⭐', label:'Top Producto',      value:topProd?topProd[1]:0,           sub:topProd?topProd[0]:'—',     color:'var(--rojo)'},
+  ];
+
+  document.getElementById('kpis').innerHTML = kpis.map((k,i) => `
+    <div class="kpi-card" style="--kpi-color:${k.color};animation-delay:${i*.08}s">
+      <div class="kpi-icon">${k.icon}</div>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// REPORTES
+// ═══════════════════════════════════════════════════
+function renderReportes(pedidos) {
+  // Destruir charts ANTES de borrar el DOM, para que Chart.js limpie su registro interno
+  if (chartCat)  { chartCat.destroy();  chartCat  = null; }
+  if (chartMens) { chartMens.destroy(); chartMens = null; }
+
+  const grid = document.getElementById('reports-grid');
+  grid.innerHTML = `
+    <div class="report-card" style="animation-delay:.1s">
+      <div class="report-title">Ventas por Sucursal</div>
+      <div class="report-desc">Total en pesos y ticket promedio</div>
+      <div id="rep-sucursales"></div>
+    </div>
+    <div class="report-card" style="animation-delay:.15s">
+      <div class="report-title">Top 10 Productos</div>
+      <div class="report-desc">Más vendidos por cantidad</div>
+      <div id="rep-top"></div>
+    </div>
+    <div class="report-card" style="animation-delay:.2s">
+      <div class="report-title">Ventas por Categoría</div>
+      <div class="report-desc">Distribución del menú</div>
+      <canvas id="chart-cat"></canvas>
+    </div>
+    <div class="report-card" style="animation-delay:.25s">
+      <div class="report-title">Comparativo Mensual</div>
+      <div class="report-desc">Tendencia por sucursal</div>
+      <canvas id="chart-mens"></canvas>
+    </div>
+    <div class="report-card" style="animation-delay:.3s">
+      <div class="report-title">Rendimiento de Empleados</div>
+      <div class="report-desc">Solo cajeros con más de 5 pedidos</div>
+      <div id="rep-empleados"></div>
+    </div>
+    <div class="report-card" style="animation-delay:.35s">
+      <div class="report-title">Productos Sin Movimiento</div>
+      <div class="report-desc">Sin ventas en el período seleccionado</div>
+      <div id="rep-sinmov"></div>
+    </div>
+  `;
+
+  repSucursales(pedidos);
+  repTop10(pedidos);
+  repCategoria(pedidos);
+  repMensual(pedidos);
+  repEmpleados(pedidos);
+  repSinMovimiento(pedidos);
+}
+
+// ── Reporte 1: Ventas por sucursal ──
+function repSucursales(pedidos) {
+  const suc = {};
+  pedidos.forEach(p => {
+    if (!suc[p.suc]) suc[p.suc] = {total:0, cnt:0};
+    suc[p.suc].total += p.total;
+    suc[p.suc].cnt++;
+  });
+  const lista = Object.entries(suc).sort((a,b)=>b[1].total-a[1].total);
+  const max = lista[0]?.[1]?.total || 1;
+  const colores = ['var(--naranja)','var(--azul)','var(--verde)','var(--rojo)'];
+
+  document.getElementById('rep-sucursales').innerHTML = lista.map(([nombre,d],i) => `
+    <div class="bar-row">
+      <div class="bar-info">
+        <span class="bar-name">${nombre}</span>
+        <span class="bar-val">$${d.total.toLocaleString()} · $${(d.total/d.cnt).toFixed(0)} prom.</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:0%;background:${colores[i%colores.length]}" data-w="${(d.total/max*100).toFixed(1)}"></div>
+      </div>
+    </div>`).join('') || '<div style="color:rgba(245,239,224,.2);font-size:.85rem;padding:1rem">Sin datos</div>';
+
+  // Animar barras
+  setTimeout(()=>{ document.querySelectorAll('.bar-fill').forEach(b=>{ b.style.width=b.dataset.w+'%'; }); }, 100);
+}
+
+// ── Reporte 2: Top 10 productos ──
+function repTop10(pedidos) {
+  const prods = {};
+  pedidos.forEach(p => p.items.forEach(i => {
+    if (!prods[i.nombre]) prods[i.nombre] = {cat:i.cat, q:0, total:0};
+    prods[i.nombre].q     += i.q;
+    prods[i.nombre].total += i.q * i.p;
+  }));
+  const top = Object.entries(prods).sort((a,b)=>b[1].q-a[1].q).slice(0,10);
+
+  document.getElementById('rep-top').innerHTML = `
+    <table class="mini-table">
+      <thead><tr><th>#</th><th>Producto</th><th>Cat.</th><th>Uds.</th><th>Total</th></tr></thead>
+      <tbody>
+        ${top.map(([n,d],i)=>`
+          <tr>
+            <td class="rank-num">${i+1}</td>
+            <td style="font-weight:600;font-size:.83rem">${n}</td>
+            <td class="cell-mono">${d.cat}</td>
+            <td class="cell-mono">${d.q}</td>
+            <td class="cell-money">$${d.total}</td>
+          </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:rgba(245,239,224,.2);padding:1rem">Sin datos</td></tr>'}
+      </tbody>
+    </table>`;
+}
+
+// ── Reporte 3: Ventas por categoría (dona) ──
+function repCategoria(pedidos) {
+  const cats = {};
+  pedidos.forEach(p => p.items.forEach(i => {
+    cats[i.cat] = (cats[i.cat]||0) + i.q * i.p;
+  }));
+  const labels = Object.keys(cats);
+  const data   = Object.values(cats);
+
+  const ctx = document.getElementById('chart-cat');
+  if (!ctx || !labels.length) return;
+
+  Chart.defaults.color = 'rgba(245,239,224,.4)';
+  chartCat = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:COLORES_CAT, borderWidth:0, hoverOffset:8 }]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{ position:'right', labels:{ boxWidth:12, padding:16, font:{family:'DM Mono, monospace', size:11} }},
+        tooltip:{ callbacks:{ label: ctx => ` $${ctx.parsed.toLocaleString()}` }}
+      }
+    }
+  });
+}
+
+// ── Reporte 4: Comparativo mensual (barras) ──
+function repMensual(pedidos) {
+  const meses = {};
+  const sucursales = [...new Set(pedidos.map(p=>p.suc))];
+  pedidos.forEach(p => {
+    const mes = p.fecha.slice(0,7);
+    if (!meses[mes]) meses[mes] = {};
+    meses[mes][p.suc] = (meses[mes][p.suc]||0) + p.total;
+  });
+
+  const labels = Object.keys(meses).sort();
+  const datasets = sucursales.map((suc,i) => ({
+    label:suc,
+    data: labels.map(m => meses[m][suc]||0),
+    backgroundColor: COLORES_SUC[i%COLORES_SUC.length]+'99',
+    borderColor:     COLORES_SUC[i%COLORES_SUC.length],
+    borderWidth:1, borderRadius:4,
+  }));
+
+  const ctx = document.getElementById('chart-mens');
+  if (!ctx || !labels.length) return;
+
+  chartMens = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: labels.map(l=>{ const [y,m]=l.split('-'); return ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)]+' '+y; }), datasets },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ labels:{ boxWidth:12, padding:12, font:{family:'DM Mono, monospace',size:10} }}},
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,.04)'}, ticks:{font:{family:'DM Mono, monospace',size:10}} },
+        y:{ grid:{color:'rgba(255,255,255,.04)'}, ticks:{font:{family:'DM Mono, monospace',size:10}, callback:v=>'$'+v.toLocaleString()} }
+      }
+    }
+  });
+}
+
+// ── Reporte 5: Rendimiento empleados ──
+function repEmpleados(pedidos) {
+  const emps = {};
+  pedidos.forEach(p => {
+    if (!emps[p.emp]) emps[p.emp] = {cnt:0, total:0};
+    emps[p.emp].cnt++;
+    emps[p.emp].total += p.total;
+  });
+  const lista = Object.entries(emps).filter(([,d])=>d.cnt>5).sort((a,b)=>b[1].total-a[1].total);
+
+  document.getElementById('rep-empleados').innerHTML = `
+    <table class="mini-table">
+      <thead><tr><th>Cajero</th><th>Pedidos</th><th>Total</th><th>Prom.</th></tr></thead>
+      <tbody>
+        ${lista.length ? lista.map(([n,d])=>`
+          <tr>
+            <td style="font-weight:700;font-size:.84rem">${n}</td>
+            <td class="cell-mono">${d.cnt}</td>
+            <td class="cell-money">$${d.total.toLocaleString()}</td>
+            <td class="cell-mono">$${(d.total/d.cnt).toFixed(0)}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="4" style="text-align:center;color:rgba(245,239,224,.2);padding:1rem">Sin empleados con más de 5 pedidos</td></tr>'}
+      </tbody>
+    </table>`;
+}
+
+// ── Reporte 6: Productos sin movimiento ──
+function repSinMovimiento(pedidos) {
+  const vendidos = new Set();
+  pedidos.forEach(p => p.items.forEach(i => vendidos.add(i.prod_id)));
+
+  const sinMov = [
+    {id:8,  nombre:'Burrito Vegetariano',  cat:'Burritos', precio:65},
+    {id:13, nombre:'Café de Olla',         cat:'Bebidas',  precio:30},
+    {id:20, nombre:'Tortillas Extras',     cat:'Extras',   precio:12},
+  ].filter(p => !vendidos.has(p.id));
+
+  const cont = document.getElementById('rep-sinmov');
+  if (!sinMov.length) {
+    cont.innerHTML = `<div style="color:var(--verde);font-family:'DM Mono',monospace;font-size:.8rem;padding:1rem;text-align:center">✓ Todos los productos tuvieron movimiento</div>`;
+    return;
+  }
+  cont.innerHTML = `<div class="no-mov-list">
+    ${sinMov.map(p=>`
+      <div class="no-mov-item">
+        <div>
+          <div style="font-weight:700">${p.nombre}</div>
+          <div class="no-mov-cat">${p.cat}</div>
+        </div>
+        <div class="no-mov-precio">$${p.precio}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// INIT
+renderDashboard();
+</script>
+</body>
+</html>

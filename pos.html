@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TacoSoft — Punto de Venta</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rojo:    #C0392B;
+    --naranja: #E67E22;
+    --amarillo:#F1C40F;
+    --verde:   #27AE60;
+    --carbon:  #1C1C1C;
+    --oscuro:  #111111;
+    --panel:   #181818;
+    --hueso:   #F5EFE0;
+    --gris:    rgba(255,255,255,.06);
+    --borde:   rgba(255,255,255,.09);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--oscuro); font-family:'Syne',sans-serif; color:var(--hueso); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+  
+  .topbar {
+    background:var(--panel);
+    border-bottom:1px solid var(--borde);
+    padding:.9rem 1.5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .topbar-left { display:flex; align-items:center; gap:1rem; }
+  .back-btn {
+    background:none; border:1px solid var(--borde); color:var(--hueso);
+    padding:.4rem .9rem; border-radius:8px; cursor:pointer; font-family:'Syne',sans-serif;
+    font-size:.8rem; transition:all .2s; text-decoration:none; display:flex; align-items:center; gap:.4rem;
+  }
+  .back-btn:hover { border-color:var(--naranja); color:var(--naranja); }
+  .topbar-title { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; letter-spacing:.06em; }
+  .topbar-title span { color:var(--naranja); }
+
+  .session-info { display:flex; align-items:center; gap:1.5rem; }
+  .session-item { font-family:'DM Mono',monospace; font-size:.7rem; color:rgba(245,239,224,.4); }
+  .session-item strong { color:var(--naranja); display:block; }
+  .clock { font-family:'DM Mono',monospace; font-size:.9rem; color:var(--hueso); }
+
+  
+  .pos-layout {
+    display:grid;
+    grid-template-columns: 1fr 380px;
+    flex:1;
+    overflow:hidden;
+  }
+
+  
+  .menu-panel { display:flex; flex-direction:column; overflow:hidden; }
+
+  
+  .step-login {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100%; gap:1.5rem; padding:2rem;
+    animation: fadeIn .4s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+  .step-title {
+    font-family:'Bebas Neue',sans-serif; font-size:2.5rem;
+    letter-spacing:.05em; text-align:center;
+  }
+  .step-title span { color:var(--naranja); }
+
+  .form-group { display:flex; flex-direction:column; gap:.5rem; width:100%; max-width:380px; }
+  .form-group label { font-family:'DM Mono',monospace; font-size:.72rem; letter-spacing:.12em; color:rgba(245,239,224,.4); text-transform:uppercase; }
+  .form-group select, .form-group input {
+    background:var(--gris); border:1px solid var(--borde);
+    color:var(--hueso); font-family:'Syne',sans-serif; font-size:.95rem;
+    padding:.75rem 1rem; border-radius:10px; outline:none;
+    transition:border-color .2s;
+  }
+  .form-group select:focus, .form-group input:focus { border-color:var(--naranja); }
+  .form-group select option { background:#1C1C1C; }
+
+  .btn-primary {
+    background:var(--naranja); color:#111; font-family:'Syne',sans-serif;
+    font-weight:800; font-size:.95rem; border:none; padding:.85rem 2rem;
+    border-radius:10px; cursor:pointer; width:100%; max-width:380px;
+    transition:all .2s; letter-spacing:.05em; text-transform:uppercase;
+  }
+  .btn-primary:hover { background:#d4711b; transform:translateY(-1px); }
+
+  
+  .cats-bar {
+    display:flex; gap:.6rem; padding:1rem 1.2rem;
+    overflow-x:auto; flex-shrink:0; border-bottom:1px solid var(--borde);
+    scrollbar-width:none;
+  }
+  .cats-bar::-webkit-scrollbar { display:none; }
+  .cat-btn {
+    background:var(--gris); border:1px solid var(--borde);
+    color:rgba(245,239,224,.6); font-family:'Syne',sans-serif;
+    font-size:.82rem; font-weight:600; padding:.5rem 1.1rem;
+    border-radius:30px; cursor:pointer; white-space:nowrap;
+    transition:all .2s; flex-shrink:0;
+  }
+  .cat-btn.active, .cat-btn:hover {
+    background:var(--naranja); color:#111; border-color:var(--naranja);
+  }
+
+  
+  .productos-grid {
+    flex:1; overflow-y:auto; padding:1.2rem;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:.9rem;
+    align-content:start;
+    scrollbar-width:thin; scrollbar-color:var(--borde) transparent;
+  }
+
+  .prod-card {
+    background:var(--gris); border:1px solid var(--borde);
+    border-radius:14px; padding:1.1rem;
+    cursor:pointer; transition:all .2s;
+    position:relative; overflow:hidden;
+  }
+  .prod-card:hover { border-color:var(--naranja); transform:translateY(-2px); background:rgba(230,126,34,.08); }
+  .prod-card.no-disp { opacity:.35; cursor:not-allowed; }
+
+  .prod-emoji { font-size:1.8rem; margin-bottom:.6rem; }
+  .prod-nombre { font-weight:700; font-size:.9rem; line-height:1.3; margin-bottom:.3rem; }
+  .prod-cat { font-family:'DM Mono',monospace; font-size:.65rem; color:rgba(245,239,224,.35); margin-bottom:.6rem; letter-spacing:.06em; }
+  .prod-precio { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--naranja); letter-spacing:.03em; }
+  .prod-badge {
+    position:absolute; top:.6rem; right:.6rem;
+    background:var(--rojo); color:#fff;
+    font-family:'DM Mono',monospace; font-size:.55rem;
+    padding:.2rem .4rem; border-radius:4px; letter-spacing:.05em;
+  }
+
+  
+  .cart-panel {
+    background:var(--panel);
+    border-left:1px solid var(--borde);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+
+  .cart-header {
+    padding:1.2rem 1.5rem;
+    border-bottom:1px solid var(--borde);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .cart-header-title { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:.06em; }
+
+  .tipo-tabs { display:flex; gap:.4rem; padding:.9rem 1.5rem; border-bottom:1px solid var(--borde); }
+  .tipo-tab {
+    flex:1; background:var(--gris); border:1px solid var(--borde);
+    color:rgba(245,239,224,.5); font-family:'Syne',sans-serif; font-size:.75rem;
+    font-weight:700; padding:.5rem .3rem; border-radius:8px; cursor:pointer;
+    text-align:center; transition:all .2s;
+  }
+  .tipo-tab.active { background:rgba(39,174,96,.15); border-color:var(--verde); color:var(--verde); }
+
+  .cliente-bar {
+    padding:.8rem 1.5rem; border-bottom:1px solid var(--borde);
+    display:flex; gap:.5rem;
+  }
+  .cliente-bar input {
+    flex:1; background:var(--gris); border:1px solid var(--borde);
+    color:var(--hueso); font-family:'Syne',sans-serif; font-size:.82rem;
+    padding:.55rem .9rem; border-radius:8px; outline:none;
+    transition:border-color .2s;
+  }
+  .cliente-bar input:focus { border-color:var(--verde); }
+  .cliente-bar input::placeholder { color:rgba(245,239,224,.3); }
+  .btn-sm {
+    background:var(--gris); border:1px solid var(--borde);
+    color:var(--hueso); font-family:'Syne',sans-serif; font-size:.78rem;
+    padding:.5rem .9rem; border-radius:8px; cursor:pointer; transition:all .2s; font-weight:600;
+  }
+  .btn-sm:hover { border-color:var(--verde); color:var(--verde); }
+
+  
+  .cart-items {
+    flex:1; overflow-y:auto; padding:1rem 1.5rem;
+    display:flex; flex-direction:column; gap:.7rem;
+    scrollbar-width:thin; scrollbar-color:var(--borde) transparent;
+  }
+
+  .cart-empty {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    height:100%; gap:.75rem; color:rgba(245,239,224,.2);
+  }
+  .cart-empty-icon { font-size:3rem; }
+  .cart-empty-text { font-family:'DM Mono',monospace; font-size:.8rem; letter-spacing:.1em; }
+
+  .cart-item {
+    display:flex; align-items:center; gap:.75rem;
+    background:var(--gris); border:1px solid var(--borde);
+    border-radius:10px; padding:.7rem .9rem;
+    animation:slideIn .2s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:none} }
+
+  .cart-item-name { flex:1; font-size:.85rem; font-weight:600; line-height:1.3; }
+  .cart-item-price { font-family:'DM Mono',monospace; font-size:.8rem; color:var(--naranja); }
+  .qty-controls { display:flex; align-items:center; gap:.4rem; }
+  .qty-btn {
+    width:24px; height:24px; border-radius:6px;
+    background:rgba(255,255,255,.08); border:1px solid var(--borde);
+    color:var(--hueso); cursor:pointer; font-size:1rem; line-height:1;
+    display:flex; align-items:center; justify-content:center; transition:all .2s;
+  }
+  .qty-btn:hover { background:var(--naranja); border-color:var(--naranja); color:#111; }
+  .qty-num { font-family:'DM Mono',monospace; font-size:.85rem; min-width:20px; text-align:center; }
+
+  
+  .promo-bar {
+    padding:.8rem 1.5rem; border-top:1px solid var(--borde);
+    display:flex; gap:.5rem; align-items:center;
+  }
+  .promo-bar select {
+    flex:1; background:var(--gris); border:1px solid var(--borde);
+    color:var(--hueso); font-family:'Syne',sans-serif; font-size:.82rem;
+    padding:.55rem .9rem; border-radius:8px; outline:none;
+  }
+  .promo-bar select option { background:#1C1C1C; }
+  .btn-promo {
+    background:rgba(241,196,15,.1); border:1px solid rgba(241,196,15,.3);
+    color:var(--amarillo); font-family:'Syne',sans-serif; font-size:.78rem;
+    font-weight:700; padding:.5rem .9rem; border-radius:8px; cursor:pointer;
+    transition:all .2s; white-space:nowrap;
+  }
+  .btn-promo:hover { background:rgba(241,196,15,.2); }
+
+  
+  .cart-footer { padding:1rem 1.5rem 1.2rem; border-top:1px solid var(--borde); }
+
+  .totals { margin-bottom:1rem; display:flex; flex-direction:column; gap:.4rem; }
+  .total-row { display:flex; justify-content:space-between; align-items:center; }
+  .total-row.main { margin-top:.4rem; padding-top:.6rem; border-top:1px solid var(--borde); }
+  .total-label { font-family:'DM Mono',monospace; font-size:.75rem; color:rgba(245,239,224,.4); }
+  .total-value { font-family:'DM Mono',monospace; font-size:.85rem; color:var(--hueso); }
+  .total-row.main .total-label { font-size:.9rem; color:var(--hueso); font-weight:500; }
+  .total-row.main .total-value { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--naranja); letter-spacing:.03em; }
+  .total-descuento { color:var(--verde) !important; }
+
+  .btn-confirmar {
+    width:100%; background:var(--rojo); color:#fff;
+    font-family:'Bebas Neue',sans-serif; font-size:1.4rem;
+    letter-spacing:.08em; border:none; padding:1rem;
+    border-radius:12px; cursor:pointer; transition:all .2s;
+  }
+  .btn-confirmar:hover { background:#a93226; transform:translateY(-1px); }
+  .btn-confirmar:disabled { opacity:.35; cursor:not-allowed; transform:none; }
+
+  
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.8);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; opacity:0; pointer-events:none; transition:opacity .3s;
+  }
+  .modal-overlay.show { opacity:1; pointer-events:all; }
+  .modal {
+    background:var(--panel); border:1px solid var(--borde);
+    border-radius:20px; padding:2.5rem; max-width:400px; width:90%;
+    text-align:center; transform:scale(.9); transition:transform .3s;
+  }
+  .modal-overlay.show .modal { transform:scale(1); }
+  .modal-icon { font-size:3.5rem; margin-bottom:1rem; }
+  .modal-title { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; letter-spacing:.05em; margin-bottom:.5rem; color:var(--verde); }
+  .modal-sub { font-family:'DM Mono',monospace; font-size:.8rem; color:rgba(245,239,224,.5); margin-bottom:2rem; line-height:1.6; }
+  .modal-folio { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; color:var(--naranja); margin-bottom:2rem; }
+  .btn-nuevo { background:var(--naranja); color:#111; font-family:'Syne',sans-serif; font-weight:800; border:none; padding:.85rem 2rem; border-radius:10px; cursor:pointer; font-size:.95rem; transition:all .2s; }
+  .btn-nuevo:hover { background:#d4711b; }
+
+  
+  .toast {
+    position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--carbon); border:1px solid var(--borde);
+    color:var(--hueso); font-family:'DM Mono',monospace; font-size:.8rem;
+    padding:.75rem 1.5rem; border-radius:10px;
+    opacity:0; transition:all .3s; z-index:200; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.error { border-color:var(--rojo); color:var(--rojo); }
+  .toast.ok { border-color:var(--verde); color:var(--verde); }
+</style>
+</head>
+<body>
+
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="index.html" onclick="if(window.parent !== window){ event.preventDefault(); window.parent.cerrarModulo(); }" class="back-btn">← Inicio</a>
+    <div class="topbar-title">Punto de <span>Venta</span></div>
+  </div>
+  <div class="session-info">
+    <div class="session-item" id="info-sucursal"><strong>—</strong>Sucursal</div>
+    <div class="session-item" id="info-cajero"><strong>—</strong>Cajero</div>
+    <div class="clock" id="clock">00:00:00</div>
+    <button class="back-btn" onclick="cerrarSesion()">⏏ Salir</button>
+  </div>
+</div>
+
+
+<div class="pos-layout" id="pos-layout" style="display:none;">
+
+  
+  <div class="menu-panel">
+    <div class="cats-bar" id="cats-bar"></div>
+    <div class="productos-grid" id="productos-grid"></div>
+  </div>
+
+  
+  <div class="cart-panel">
+    <div class="cart-header">
+      <div class="cart-header-title">🛒 Mi Pedido</div>
+      <button class="btn-sm" onclick="limpiarCarrito()">Limpiar</button>
+    </div>
+
+    <div class="tipo-tabs">
+      <button class="tipo-tab active" data-tipo="en local" onclick="setTipo(this)">🪑 En Local</button>
+      <button class="tipo-tab" data-tipo="para llevar" onclick="setTipo(this)">🥡 Para Llevar</button>
+      <button class="tipo-tab" data-tipo="a domicilio" onclick="setTipo(this)">🛵 Domicilio</button>
+    </div>
+
+    <div class="cliente-bar">
+      <input type="text" id="cliente-input" placeholder="Cliente (opcional — público general)" />
+      <button class="btn-sm" onclick="buscarCliente()">Buscar</button>
+    </div>
+
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🌮</div>
+        <div class="cart-empty-text">SIN PRODUCTOS AÚN</div>
+      </div>
+    </div>
+
+    <div class="promo-bar">
+      <select id="promo-select">
+        <option value="">Sin promoción</option>
+      </select>
+      <button class="btn-promo" onclick="aplicarPromo()">🏷 Aplicar</button>
+    </div>
+
+    <div class="cart-footer">
+      <div class="totals">
+        <div class="total-row">
+          <span class="total-label">Subtotal</span>
+          <span class="total-value" id="t-subtotal">$0.00</span>
+        </div>
+        <div class="total-row" id="t-descuento-row" style="display:none;">
+          <span class="total-label">Descuento</span>
+          <span class="total-value total-descuento" id="t-descuento">-$0.00</span>
+        </div>
+        <div class="total-row main">
+          <span class="total-label">TOTAL</span>
+          <span class="total-value" id="t-total">$0.00</span>
+        </div>
+      </div>
+      <button class="btn-confirmar" id="btn-confirmar" onclick="confirmarPedido()" disabled>
+        CONFIRMAR PEDIDO
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PANTALLA LOGIN -->
+<div class="step-login" id="step-login">
+  <div style="font-size:3rem">🌮</div>
+  <div class="step-title">Iniciar <span>Sesión</span><br>de Cajero</div>
+
+  <div class="form-group">
+    <label>Sucursal</label>
+    <select id="sel-sucursal">
+      <option value="">— Selecciona —</option>
+      <option value="1">El Sinaloense Culiacán</option>
+      <option value="2">El Sinaloense Mazatlán</option>
+      <option value="3">El Sinaloense Los Mochis</option>
+      <option value="4">El Sinaloense Guasave</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>ID de Empleado</label>
+    <input type="number" id="sel-empleado" placeholder="Cajeros: 2, 6, 9 ó 12" min="1">
+  </div>
+
+  <button class="btn-primary" onclick="iniciarSesion()">Entrar al sistema →</button>
+</div>
+
+<!-- MODAL ÉXITO -->
+<div class="modal-overlay" id="modal-exito">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <div class="modal-title">¡Pedido Registrado!</div>
+    <div class="modal-folio" id="modal-folio">Folio #000</div>
+    <div class="modal-sub" id="modal-detalle">El pedido fue enviado a cocina correctamente.</div>
+    <button class="btn-nuevo" onclick="nuevoPedido()">+ Nuevo Pedido</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATOS DE DEMO (en producción vienen del backend via fetch) ──
+const SUCURSALES = {
+  1:'Culiacán', 2:'Mazatlán', 3:'Los Mochis', 4:'Guasave'
+};
+
+const EMPLEADOS_VALIDOS = {
+  1:[1], 2:[2,3,4], 3:[5,6,7], 4:[8,9,10], 5:[11,12,13]
+};
+
+const CATEGORIAS = [
+  {id:1, nombre:'🌮 Tacos'},
+  {id:2, nombre:'🌯 Burritos'},
+  {id:3, nombre:'🥤 Bebidas'},
+  {id:4, nombre:'🍮 Postres'},
+  {id:5, nombre:'➕ Extras'},
+];
+
+const PRODUCTOS = [
+  {id:1,  nombre:'Taco de Birria',         cat:1, precio:45, emoji:'🌮', disp:true},
+  {id:2,  nombre:'Taco de Carne Asada',    cat:1, precio:40, emoji:'🥩', disp:true},
+  {id:3,  nombre:'Taco de Carnitas',       cat:1, precio:38, emoji:'🐷', disp:true},
+  {id:4,  nombre:'Taco de Camarón',        cat:1, precio:55, emoji:'🦐', disp:true},
+  {id:5,  nombre:'Taco de Frijoles',       cat:1, precio:28, emoji:'🫘', disp:true},
+  {id:6,  nombre:'Burrito de Carne',       cat:2, precio:75, emoji:'🌯', disp:true},
+  {id:7,  nombre:'Burrito de Pollo',       cat:2, precio:70, emoji:'🍗', disp:true},
+  {id:8,  nombre:'Burrito Vegetariano',    cat:2, precio:65, emoji:'🥗', disp:true},
+  {id:9,  nombre:'Burrito de Camarón',     cat:2, precio:85, emoji:'🦐', disp:true},
+  {id:10, nombre:'Agua de Horchata',       cat:3, precio:22, emoji:'🥛', disp:true},
+  {id:11, nombre:'Agua de Jamaica',        cat:3, precio:20, emoji:'🌺', disp:true},
+  {id:12, nombre:'Refresco',               cat:3, precio:25, emoji:'🥤', disp:true},
+  {id:13, nombre:'Café de Olla',           cat:3, precio:30, emoji:'☕', disp:true},
+  {id:14, nombre:'Cajeta con Nieve',       cat:4, precio:45, emoji:'🍨', disp:true},
+  {id:15, nombre:'Churros con Chocolate',  cat:4, precio:40, emoji:'🥐', disp:true},
+  {id:16, nombre:'Flan de Cajeta',         cat:4, precio:35, emoji:'🍮', disp:true},
+  {id:17, nombre:'Guacamole',              cat:5, precio:30, emoji:'🥑', disp:true},
+  {id:18, nombre:'Salsa Roja Extra',       cat:5, precio:10, emoji:'🌶', disp:true},
+  {id:19, nombre:'Orden de Queso',         cat:5, precio:20, emoji:'🧀', disp:true},
+  {id:20, nombre:'Tortillas Extras',       cat:5, precio:12, emoji:'🫓', disp:false},
+];
+
+const PROMOCIONES = [
+  {id:2, nombre:'Semana del Burrito (-20%)',  pct:20, productos:[6,7,8,9]},
+  {id:3, nombre:'Descuento Clásico (-10%)',   pct:10, productos:[5,12,18,20]},
+];
+
+// ── ESTADO ──
+let sesion = { sucursal_id:null, sucursal_nombre:'', empleado_id:null, empleado_nombre:'' };
+let carrito = [];
+let tipoPedido = 'en local';
+let promoActiva = null;
+let clienteId = null;
+let catActiva = 'TODOS';
+let folioCounter = 1000;
+
+// ── RELOJ ──
+function actualizarReloj() {
+  const d = new Date();
+  document.getElementById('clock').textContent = d.toLocaleTimeString('es-MX');
+}
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
+
+// ── LOGIN ──
+function iniciarSesion() {
+  const sucId = parseInt(document.getElementById('sel-sucursal').value);
+  const empId = parseInt(document.getElementById('sel-empleado').value);
+
+  if (!sucId) return toast('Selecciona una sucursal', 'error');
+  if (!empId || empId < 1) return toast('Ingresa un ID de empleado válido', 'error');
+
+  // Cajeros válidos por sucursal (ID → nombre)
+  const cajerosValidos = {
+    2:'Karla Rojo', 6:'Jesús Cota', 9:'Fabiola Chávez', 12:'Héctor Corrales'
+  };
+  if (!cajerosValidos[empId]) {
+    return toast('ID no válido. Cajeros disponibles: 2, 6, 9 ó 12', 'error');
+  }
+
+  const nombresEmpleados = cajerosValidos;
+
+  sesion = {
+    sucursal_id: sucId,
+    sucursal_nombre: SUCURSALES[sucId],
+    empleado_id: empId,
+    empleado_nombre: nombresEmpleados[empId] || `Cajero #${empId}`,
+  };
+
+  document.getElementById('info-sucursal').innerHTML = `<strong>${sesion.sucursal_nombre}</strong>Sucursal`;
+  document.getElementById('info-cajero').innerHTML   = `<strong>${sesion.empleado_nombre}</strong>Cajero`;
+
+  document.getElementById('step-login').style.display = 'none';
+  document.getElementById('pos-layout').style.display = 'grid';
+
+  renderCategorias();
+  renderProductos('TODOS');
+  cargarPromos();
+  toast(`Bienvenido, ${sesion.empleado_nombre} 👋`, 'ok');
+}
+
+function cerrarSesion() {
+  if (carrito.length > 0 && !confirm('¿Salir? Perderás el pedido actual.')) return;
+  sesion = {}; carrito = []; promoActiva = null;
+  document.getElementById('step-login').style.display = 'flex';
+  document.getElementById('pos-layout').style.display = 'none';
+  document.getElementById('sel-sucursal').value = '';
+  document.getElementById('sel-empleado').value = '';
+}
+
+// ── CATEGORÍAS ──
+function renderCategorias() {
+  const bar = document.getElementById('cats-bar');
+  bar.innerHTML = '';
+
+  const todos = document.createElement('button');
+  todos.className = 'cat-btn active';
+  todos.textContent = '⭐ Todos';
+  todos.onclick = () => { setCategoria('TODOS', todos); };
+  bar.appendChild(todos);
+
+  CATEGORIAS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn';
+    btn.textContent = c.nombre;
+    btn.onclick = () => setCategoria(c.id, btn);
+    bar.appendChild(btn);
+  });
+}
+
+function setCategoria(id, btn) {
+  catActiva = id;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProductos(id);
+}
+
+// ── PRODUCTOS ──
+function renderProductos(catId) {
+  const grid = document.getElementById('productos-grid');
+  const lista = catId === 'TODOS' ? PRODUCTOS : PRODUCTOS.filter(p => p.cat === catId);
+  grid.innerHTML = '';
+
+  lista.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'prod-card' + (p.disp ? '' : ' no-disp');
+    card.innerHTML = `
+      ${!p.disp ? '<div class="prod-badge">AGOTADO</div>' : ''}
+      <div class="prod-emoji">${p.emoji}</div>
+      <div class="prod-nombre">${p.nombre}</div>
+      <div class="prod-cat">${CATEGORIAS.find(c=>c.id===p.cat)?.nombre.split(' ')[1] || ''}</div>
+      <div class="prod-precio">$${p.precio}</div>
+    `;
+    if (p.disp) card.onclick = () => agregarAlCarrito(p);
+    grid.appendChild(card);
+  });
+}
+
+// ── CARRITO ──
+function agregarAlCarrito(prod) {
+  const existente = carrito.find(i => i.id === prod.id);
+  if (existente) {
+    existente.cantidad++;
+  } else {
+    carrito.push({ id:prod.id, nombre:prod.nombre, precio:prod.precio, cantidad:1, emoji:prod.emoji });
+  }
+  promoActiva = null; // reset promo al cambiar carrito
+  renderCarrito();
+  toast(`${prod.emoji} ${prod.nombre} agregado`, 'ok');
+}
+
+function cambiarCantidad(id, delta) {
+  const item = carrito.find(i => i.id === id);
+  if (!item) return;
+  item.cantidad += delta;
+  if (item.cantidad <= 0) carrito = carrito.filter(i => i.id !== id);
+  promoActiva = null;
+  renderCarrito();
+}
+
+function limpiarCarrito() {
+  carrito = []; promoActiva = null;
+  renderCarrito();
+}
+
+function renderCarrito() {
+  const cont = document.getElementById('cart-items');
+
+  if (carrito.length === 0) {
+    cont.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🌮</div>
+        <div class="cart-empty-text">SIN PRODUCTOS AÚN</div>
+      </div>`;
+    actualizarTotales();
+    document.getElementById('btn-confirmar').disabled = true;
+    return;
+  }
+
+  cont.innerHTML = '';
+  carrito.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+    div.innerHTML = `
+      <span style="font-size:1.3rem">${item.emoji}</span>
+      <div class="cart-item-name">${item.nombre}</div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="cambiarCantidad(${item.id}, -1)">−</button>
+        <span class="qty-num">${item.cantidad}</span>
+        <button class="qty-btn" onclick="cambiarCantidad(${item.id}, +1)">+</button>
+      </div>
+      <div class="cart-item-price">$${(item.precio * item.cantidad).toFixed(2)}</div>
+    `;
+    cont.appendChild(div);
+  });
+
+  actualizarTotales();
+  document.getElementById('btn-confirmar').disabled = false;
+}
+
+function actualizarTotales() {
+  const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  let total = subtotal;
+  let descuento = 0;
+
+  if (promoActiva) {
+    const productosPromo = promoActiva.productos;
+    descuento = carrito.reduce((s, i) => {
+      if (productosPromo.includes(i.id)) return s + i.precio * i.cantidad * (promoActiva.pct / 100);
+      return s;
+    }, 0);
+    total = subtotal - descuento;
+  }
+
+  document.getElementById('t-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('t-total').textContent    = `$${total.toFixed(2)}`;
+
+  const descRow = document.getElementById('t-descuento-row');
+  if (descuento > 0) {
+    descRow.style.display = 'flex';
+    document.getElementById('t-descuento').textContent = `-$${descuento.toFixed(2)}`;
+  } else {
+    descRow.style.display = 'none';
+  }
+}
+
+// ── TIPO PEDIDO ──
+function setTipo(btn) {
+  tipoPedido = btn.dataset.tipo;
+  document.querySelectorAll('.tipo-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── CLIENTE ──
+function buscarCliente() {
+  const q = document.getElementById('cliente-input').value.trim();
+  if (!q) return;
+  // En producción: fetch al backend
+  toast('Cliente registrado: ' + q, 'ok');
+  clienteId = 1;
+}
+
+// ── PROMO ──
+function cargarPromos() {
+  const sel = document.getElementById('promo-select');
+  sel.innerHTML = '<option value="">Sin promoción</option>';
+  PROMOCIONES.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.nombre;
+    sel.appendChild(opt);
+  });
+}
+
+function aplicarPromo() {
+  const val = parseInt(document.getElementById('promo-select').value);
+  if (!val) { promoActiva = null; renderCarrito(); return; }
+  if (carrito.length === 0) return toast('Agrega productos primero', 'error');
+
+  const promo = PROMOCIONES.find(p => p.id === val);
+  const aplica = carrito.some(i => promo.productos.includes(i.id));
+
+  if (!aplica) return toast('Ningún producto aplica a esta promoción', 'error');
+
+  promoActiva = promo;
+  renderCarrito();
+  toast(`🏷 ${promo.nombre} aplicada`, 'ok');
+}
+
+// ── CONFIRMAR ──
+function confirmarPedido() {
+  if (carrito.length === 0) return;
+
+  folioCounter++;
+  const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+  let total = subtotal;
+  if (promoActiva) {
+    const desc = carrito.reduce((s,i) => promoActiva.productos.includes(i.id) ? s + i.precio*i.cantidad*(promoActiva.pct/100) : s, 0);
+    total = subtotal - desc;
+  }
+
+  // En producción: fetch POST al backend → sp_NuevoPedido → sp_AgregarProductoAlPedido
+  document.getElementById('modal-folio').textContent = `Folio #${folioCounter}`;
+  document.getElementById('modal-detalle').textContent =
+    `${carrito.length} producto(s) · ${tipoPedido} · $${total.toFixed(2)} MXN · ${sesion.sucursal_nombre}`;
+
+  document.getElementById('modal-exito').classList.add('show');
+}
+
+function nuevoPedido() {
+  carrito = []; promoActiva = null; clienteId = null;
+  document.getElementById('cliente-input').value = '';
+  document.getElementById('promo-select').value = '';
+  document.getElementById('modal-exito').classList.remove('show');
+
+  // Reset tipo
+  document.querySelectorAll('.tipo-tab').forEach((b,i) => b.classList.toggle('active', i===0));
+  tipoPedido = 'en local';
+
+  renderCarrito();
+}
+
+// ── TOAST ──
+function toast(msg, tipo='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (tipo ? ' '+tipo : '');
+  setTimeout(() => el.className = 'toast', 2800);
+}
+</script>
+</body>
+</html>
